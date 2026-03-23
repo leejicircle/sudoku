@@ -13,7 +13,6 @@ OAuth 기반 소셜 로그인을 지원하며, 한국 사용자를 고려해 Goo
 
 - **Auth.js v5 (next-auth@beta)** 사용
   - Next.js App Router와 네이티브 통합
-  - Edge Runtime 호환
   - `@auth/prisma-adapter`로 Prisma 스키마와 직접 연동
 - **Provider**: Google OAuth + Naver OAuth
   - Google: 글로벌 표준 소셜 로그인
@@ -21,9 +20,9 @@ OAuth 기반 소셜 로그인을 지원하며, 한국 사용자를 고려해 Goo
 - **세션 전략**: `database` 방식
   - DB에 세션 저장 → 서버 측에서 세션 무효화 가능
   - Prisma Adapter가 세션 CRUD를 자동 처리
-- **미들웨어**: 인증 상태 확인용
-  - 정적 파일, API, 공개 페이지는 미들웨어에서 제외
-  - 인증이 필요한 페이지 접근 시 `/login`으로 리다이렉트
+- **인증 보호**: 서버 컴포넌트/API Route에서 `auth()` 호출
+  - Next.js 미들웨어는 Edge Runtime에서 실행되므로 Prisma Client 사용 불가
+  - 따라서 미들웨어 기반 인증 보호 대신, 서버 사이드에서 `auth()`로 세션 검증
 
 ## Consequences
 
