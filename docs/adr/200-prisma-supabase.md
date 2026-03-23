@@ -32,3 +32,7 @@ ORM 선택과 호스팅 서비스를 결정해야 한다.
 **부정적**
 - Supabase 무료 티어의 연결 수 제한 (최대 60개)
 - Prisma의 raw query 사용 시 타입 안전성 상실 (사용 지양)
+
+## Notes
+
+- **`VerificationToken` 테이블은 `createdAt`/`updatedAt` 예외**: CLAUDE.md의 "모든 테이블에 `createdAt`, `updatedAt` 필수" 규칙에 대한 예외. Auth.js v5 공식 스키마에서 `VerificationToken`은 토큰 발급 → 검증 → 삭제의 일회성 레코드이며, `expires` 필드가 생명주기를 관리하므로 타임스탬프가 불필요하다.
