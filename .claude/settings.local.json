@@ -17,7 +17,9 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm type-check:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(pnpm dlx:*)"
     ]
   }
 }
