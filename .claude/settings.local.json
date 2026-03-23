@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm list:*)",
+      "Bash(corepack -v)",
+      "Bash(corepack enable:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm -v)",
+      "Bash(git checkout:*)",
+      "Bash(pnpm create:*)",
+      "Bash(cp -r temp-next/src .)",
+      "Bash(cp -r temp-next/public .)",
+      "Bash(pnpm install:*)",
+      "Bash(for dir:*)",
+      "Bash(do touch:*)",
+      "Bash(done)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
