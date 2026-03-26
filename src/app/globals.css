@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* ── shadcn/ui 기본 토큰 ── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -46,9 +47,62 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ── 🖌 스도쿠 브랜드 색상 ── */
+  --color-sudoku-primary: var(--sudoku-primary);
+  --color-sudoku-primary-foreground: var(--sudoku-primary-foreground);
+  --color-sudoku-accent: var(--sudoku-accent);
+
+  /* ── 🖌 셀 상태 색상 ── */
+  --color-cell-default: var(--cell-default);
+  --color-cell-default-foreground: var(--cell-default-foreground);
+  --color-cell-given: var(--cell-given);
+  --color-cell-given-foreground: var(--cell-given-foreground);
+  --color-cell-selected: var(--cell-selected);
+  --color-cell-selected-foreground: var(--cell-selected-foreground);
+  --color-cell-highlighted: var(--cell-highlighted);
+  --color-cell-same-number: var(--cell-same-number);
+  --color-cell-error: var(--cell-error);
+  --color-cell-error-foreground: var(--cell-error-foreground);
+  --color-cell-locked: var(--cell-locked);
+  --color-cell-locked-foreground: var(--cell-locked-foreground);
+  --color-cell-completed: var(--cell-completed);
+
+  /* ── 🖌 보드 색상 ── */
+  --color-board-border: var(--board-border);
+  --color-board-border-thin: var(--board-border-thin);
+  --color-board-bg: var(--board-bg);
+
+  /* ── 🖌 난이도 색상 ── */
+  --color-difficulty-easy: var(--difficulty-easy);
+  --color-difficulty-medium: var(--difficulty-medium);
+  --color-difficulty-hard: var(--difficulty-hard);
+  --color-difficulty-expert: var(--difficulty-expert);
+
+  /* ── 🖌 기능 색상 ── */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+
+  /* ── 🖌 게임 보드 간격 ── */
+  --spacing-cell: var(--cell-size);
+  --spacing-cell-md: var(--cell-size-md);
+  --spacing-cell-lg: var(--cell-size-lg);
+  --spacing-numpad-btn: var(--numpad-button-size);
+
+  /* ── 🖌 애니메이션 ── */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-cell-pop: cell-pop 200ms var(--ease-bounce);
+  --animate-cell-error-shake: cell-error-shake 300ms var(--ease-default);
+  --animate-cell-complete-flash: cell-complete-flash 500ms ease-out;
+  --animate-numpad-press: numpad-press 100ms ease-out;
+  --animate-modal-enter: modal-enter 300ms cubic-bezier(0, 0, 0.2, 1);
+  --animate-modal-exit: modal-exit 200ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 :root {
+  /* ── shadcn/ui 기본 ── */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -81,9 +135,87 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ── 🖌 스도쿠 브랜드 색상 (Light) ── */
+  --sudoku-primary: oklch(0.55 0.18 250);
+  --sudoku-primary-foreground: oklch(0.98 0 0);
+  --sudoku-accent: oklch(0.65 0.15 250);
+
+  /* ── 🖌 셀 상태 색상 (Light) ── */
+  --cell-default: oklch(1 0 0);
+  --cell-default-foreground: oklch(0.25 0 0);
+  --cell-given: oklch(0.97 0 0);
+  --cell-given-foreground: oklch(0.15 0 0);
+  --cell-selected: oklch(0.88 0.08 250);
+  --cell-selected-foreground: oklch(0.20 0 0);
+  --cell-highlighted: oklch(0.93 0.04 250);
+  --cell-same-number: oklch(0.90 0.06 250);
+  --cell-error: oklch(0.90 0.10 25);
+  --cell-error-foreground: oklch(0.50 0.20 25);
+  --cell-locked: oklch(0.94 0 0);
+  --cell-locked-foreground: oklch(0.55 0 0);
+  --cell-completed: oklch(0.90 0.10 145);
+
+  /* ── 🖌 보드 색상 (Light) ── */
+  --board-border: oklch(0.25 0 0);
+  --board-border-thin: oklch(0.80 0 0);
+  --board-bg: oklch(0.97 0 0);
+
+  /* ── 🖌 난이도 색상 ── */
+  --difficulty-easy: oklch(0.72 0.16 145);
+  --difficulty-medium: oklch(0.75 0.15 85);
+  --difficulty-hard: oklch(0.68 0.18 50);
+  --difficulty-expert: oklch(0.60 0.20 25);
+
+  /* ── 🖌 기능 색상 (Light) ── */
+  --success: oklch(0.72 0.16 145);
+  --warning: oklch(0.75 0.15 85);
+  --info: oklch(0.65 0.15 250);
+
+  /* ── 🖌 게임 보드 간격 ── */
+  --cell-size: 40px;
+  --cell-size-md: 48px;
+  --cell-size-lg: 56px;
+  --board-gap-thin: 1px;
+  --board-gap-thick: 2px;
+  --board-padding: 16px;
+  --board-border-width: 3px;
+  --numpad-gap: 8px;
+  --numpad-button-size: 48px;
+  --memo-cell-size: 12px;
+
+  /* ── 🖌 그림자 (Light) ── */
+  --shadow-board: 0 2px 8px oklch(0 0 0 / 0.08), 0 0 0 3px oklch(0.25 0 0);
+  --shadow-cell-selected: inset 0 0 0 2px oklch(0.55 0.18 250);
+  --shadow-numpad: 0 2px 4px oklch(0 0 0 / 0.06);
+
+  /* ── 🖌 애니메이션 duration ── */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+
+  /* ── 🖌 이징 ── */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── 🖌 Z-Index ── */
+  --z-base: 0;
+  --z-board: 10;
+  --z-cell-highlight: 20;
+  --z-numpad: 30;
+  --z-header: 40;
+  --z-bottom-nav: 40;
+  --z-popover: 50;
+  --z-modal-overlay: 60;
+  --z-modal: 70;
+  --z-toast: 80;
 }
 
 .dark {
+  /* ── shadcn/ui 기본 ── */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -115,6 +247,41 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* ── 🖌 스도쿠 브랜드 색상 (Dark) ── */
+  --sudoku-primary: oklch(0.68 0.16 250);
+  --sudoku-primary-foreground: oklch(0.98 0 0);
+  --sudoku-accent: oklch(0.55 0.13 250);
+
+  /* ── 🖌 셀 상태 색상 (Dark) ── */
+  --cell-default: oklch(0.22 0 0);
+  --cell-default-foreground: oklch(0.92 0 0);
+  --cell-given: oklch(0.26 0 0);
+  --cell-given-foreground: oklch(0.95 0 0);
+  --cell-selected: oklch(0.35 0.10 250);
+  --cell-selected-foreground: oklch(0.95 0 0);
+  --cell-highlighted: oklch(0.28 0.06 250);
+  --cell-same-number: oklch(0.32 0.08 250);
+  --cell-error: oklch(0.30 0.10 25);
+  --cell-error-foreground: oklch(0.70 0.18 25);
+  --cell-locked: oklch(0.24 0 0);
+  --cell-locked-foreground: oklch(0.60 0 0);
+  --cell-completed: oklch(0.35 0.10 145);
+
+  /* ── 🖌 보드 색상 (Dark) ── */
+  --board-border: oklch(0.80 0 0);
+  --board-border-thin: oklch(0.35 0 0);
+  --board-bg: oklch(0.18 0 0);
+
+  /* ── 🖌 기능 색상 (Dark) ── */
+  --success: oklch(0.65 0.14 145);
+  --warning: oklch(0.68 0.13 85);
+  --info: oklch(0.58 0.13 250);
+
+  /* ── 🖌 그림자 (Dark → 글로우 효과) ── */
+  --shadow-board: 0 2px 8px oklch(0 0 0 / 0.3), 0 0 0 3px oklch(0.80 0 0);
+  --shadow-cell-selected: inset 0 0 0 2px oklch(0.68 0.16 250);
+  --shadow-numpad: 0 2px 4px oklch(0 0 0 / 0.2);
 }
 
 @layer base {
@@ -126,5 +293,99 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* ── 🖌 스도쿠 애니메이션 키프레임 ── */
+
+@keyframes cell-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cell-error-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-4px);
+  }
+  30% {
+    transform: translateX(4px);
+  }
+  45% {
+    transform: translateX(-3px);
+  }
+  60% {
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+  90% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes cell-complete-flash {
+  0% {
+    background-color: var(--cell-completed);
+  }
+  100% {
+    background-color: var(--cell-default);
+  }
+}
+
+@keyframes numpad-press {
+  0% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes modal-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modal-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+@keyframes board-complete-celebrate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
   }
 }
