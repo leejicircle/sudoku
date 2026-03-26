@@ -20,7 +20,11 @@
       "Bash(git add:*)",
       "Bash(gh pr:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)",
+      "Bash(gh issue:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

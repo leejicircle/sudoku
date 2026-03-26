@@ -61,6 +61,6 @@ docs/adr/2xx-*.md           # Backend ADR
 
 ## 시작 명령어 예시
 ```bash
-claude --profile backend
+claude --agent backend
 # "Backend 에이전트로 Epic #4의 feat/api-user-schema 작업을 시작해줘"
 ```

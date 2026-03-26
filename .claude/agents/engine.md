@@ -88,6 +88,6 @@ pnpm test -- --filter engine
 
 ## 시작 명령어 예시
 ```bash
-claude --profile engine
+claude --agent engine
 # "Engine 에이전트로 Epic #3의 feat/engine-types 작업을 시작해줘"
 ```

@@ -68,6 +68,6 @@ docs/adr/1xx-*.md           # Frontend ADR
 
 ## 시작 명령어 예시
 ```bash
-claude --profile frontend
+claude --agent frontend
 # "Frontend 에이전트로 Epic #5의 feat/ui-board 작업을 시작해줘"
 ```

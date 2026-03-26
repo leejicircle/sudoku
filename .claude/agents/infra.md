@@ -56,7 +56,6 @@ docs/adr/4xx-*.md           # Infra ADR
 
 ## 시작 명령어 예시
 ```bash
-claude --profile infra
-# 또는 세션에서:
+claude --agent infra
 # "Infra 에이전트로 Epic #1의 feat/infra-nextjs-init 작업을 시작해줘"
 ```
