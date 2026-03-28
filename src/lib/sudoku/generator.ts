@@ -191,5 +191,8 @@ export const isValidSolution = (grid: SolutionGrid): boolean => {
   return true;
 };
 
-// 내부 유틸 export (테스트용)
+/**
+ * @internal 테스트 전용 export — 외부에서 직접 사용 금지
+ * fillGrid는 grid를 in-place 수정하므로 주의 필요
+ */
 export { canPlace, shuffle, createEmptyGrid, fillGrid, BOARD_SIZE, BOX_SIZE, DIGITS };
