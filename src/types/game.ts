@@ -69,7 +69,7 @@ export interface Cell {
 export type Board = Cell[][];
 
 /** 숫자만 담은 9×9 그리드 (풀이/생성 내부용) */
-export type Grid = (number | null)[][];
+export type Grid = CellValue[][];
 
 /** 숫자만 담은 9×9 완성 그리드 (정답용) */
 export type SolutionGrid = Digit[][];
@@ -210,12 +210,7 @@ export interface DeadlockCheckResult {
 
 // ─── 풀이 ─────────────────────────────────────────────
 
-/** 풀이 결과 */
-export interface SolveResult {
-  /** 풀이 성공 여부 */
-  solved: boolean;
-  /** 풀이 결과 그리드 */
-  grid: Grid;
-  /** 해의 개수 (유일해 검증용, 최대 2까지만 셈) */
-  solutionCount: number;
-}
+/** 풀이 결과 (discriminated union) */
+export type SolveResult =
+  | { solved: true; grid: SolutionGrid; solutionCount: number }
+  | { solved: false; grid: Grid; solutionCount: number };

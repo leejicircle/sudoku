@@ -16,7 +16,7 @@
     "db:seed": "prisma db seed",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:engine": "vitest run --reporter=verbose tests/engine"
+    "test:engine": "vitest run --reporter=verbose __tests__/sudoku"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
