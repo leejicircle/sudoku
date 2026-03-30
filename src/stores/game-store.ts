@@ -168,7 +168,7 @@ const pushHistory = (
 ): HistoryEntry[] => {
   const entry: HistoryEntry = {
     board: cloneBoard(board),
-    lockedCells: lockedCells.map((lc) => ({ ...lc })),
+    lockedCells: lockedCells.map((lc) => ({ ...lc, conditions: [...lc.conditions] })),
   };
   const newHistory = [...history, entry];
   if (newHistory.length > MAX_HISTORY) {
@@ -331,9 +331,12 @@ export const useGameStore = create<GameStore>()(
           })),
         );
 
+        // given 셀만으로 이미 충족되는 잠금 조건을 재검사
+        const unlockResult = processUnlocks(finalBoard, originalLockedCells);
+
         set({
-          board: finalBoard,
-          lockedCells: originalLockedCells,
+          board: unlockResult.board,
+          lockedCells: unlockResult.lockedCells,
           selectedCell: null,
           isNoteMode: false,
           timer: 0,
@@ -411,6 +414,7 @@ export const useGameStore = create<GameStore>()(
         // 충돌 검증 (다른 셀의 에러가 해소될 수 있음)
         const validatedBoard = updateBoardErrors(newBoard);
 
+        // 잠금은 단방향(해제만 가능) — clearValue로 조건이 미충족되어도 재잠금하지 않음
         set({
           board: validatedBoard,
           history: newHistory,
@@ -459,9 +463,12 @@ export const useGameStore = create<GameStore>()(
         const newHistory = [...history];
         const lastEntry = newHistory.pop()!;
 
+        // 복원된 보드에서 잠금 해제 조건 재검사
+        const unlockResult = processUnlocks(lastEntry.board, lastEntry.lockedCells);
+
         set({
-          board: lastEntry.board,
-          lockedCells: lastEntry.lockedCells,
+          board: unlockResult.board,
+          lockedCells: unlockResult.lockedCells,
           history: newHistory,
         });
       },
@@ -515,7 +522,7 @@ export const useGameStore = create<GameStore>()(
       // 복원 시 Set 역직렬화
       merge: (persisted, current) => {
         const data = persisted as PersistedState | null;
-        if (!data || !data.isStarted || !data.board || data.board.length === 0) {
+        if (!data?.isStarted) {
           return current;
         }
 
