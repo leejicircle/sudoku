@@ -136,6 +136,10 @@ export const generatePuzzle = (stage: number): PuzzleGenerationResult => {
   const solution = generateSolution();
   const puzzle = createPuzzleFromSolution(solution, config.emptyCells);
 
+  // TODO: 잠금 칸 생성 로직 — feat/engine-lock-area, lock-number, lock-chain PR에서 구현 예정
+  // config.lockedCellCount > 0인 스테이지(11+)에서 잠금 칸을 배치하고
+  // 잠금 포함 상태에서도 풀이 가능성을 보장해야 함
+
   return {
     puzzle,
     solution,
