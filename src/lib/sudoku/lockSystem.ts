@@ -815,10 +815,19 @@ export const placeLocks = (
       // 체인 제거 후 개별 검증 통과한 원본으로 fallback
       finalLockedCells = lockedCells;
 
-      // fallback에서도 데드락 검사
+      // fallback에서도 데드락 검사 → 원인 셀 제거
       const fallbackCheck = checkDeadlock(workingPuzzle, solution, finalLockedCells);
-      if (fallbackCheck.hasDeadlock && process.env.NODE_ENV !== 'production') {
-        console.warn(`[lockSystem] fallback에서도 데드락 감지: ${fallbackCheck.reason}`);
+      if (fallbackCheck.hasDeadlock) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(`[lockSystem] fallback에서도 데드락 감지: ${fallbackCheck.reason} — 원인 셀을 제거합니다.`);
+        }
+        // 데드락 원인 셀을 제거하여 안전한 잠금 목록만 유지
+        const involvedKeys = new Set(
+          (fallbackCheck.involvedCells || []).map((p) => posKey(p.row, p.col)),
+        );
+        finalLockedCells = finalLockedCells.filter(
+          (lc) => !involvedKeys.has(posKey(lc.position.row, lc.position.col)),
+        );
       }
     }
   }
