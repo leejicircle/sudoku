@@ -1,3 +1,4 @@
+import type { Session } from "next-auth";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -21,7 +22,7 @@ import { prisma } from "@/lib/prisma";
  * }
  * ```
  */
-export const requireAuth = async () => {
+export const requireAuth = async (): Promise<Session | null> => {
   const session = await auth();
   if (!session?.user?.id) return null;
   return session;
@@ -32,9 +33,22 @@ export const requireAuth = async () => {
  *
  * 세션에 포함되지 않은 상세 정보(createdAt 등)가 필요할 때 사용.
  * 인증되지 않은 경우 null을 반환한다.
+ *
+ * 기존 세션을 전달하면 auth() 재호출 없이 DB 조회 1회로 처리한다.
+ *
+ * @example
+ * ```ts
+ * // 단독 사용
+ * const user = await getCurrentUser();
+ *
+ * // requireAuth()와 함께 사용 (DB 조회 절약)
+ * const session = await requireAuth();
+ * if (!session) return 401;
+ * const user = await getCurrentUser(session);
+ * ```
  */
-export const getCurrentUser = async () => {
-  const session = await auth();
+export const getCurrentUser = async (existingSession?: Session | null) => {
+  const session = existingSession ?? (await auth());
   if (!session?.user?.id) return null;
 
   return prisma.user.findUnique({
@@ -46,7 +60,6 @@ export const getCurrentUser = async () => {
       image: true,
       nickname: true,
       createdAt: true,
-      updatedAt: true,
     },
   });
 };
