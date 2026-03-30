@@ -22,6 +22,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  nickname      String?   @db.VarChar(20)
 
   accounts Account[]
   sessions Session[]
@@ -52,6 +53,7 @@ model Account {
   updatedAt DateTime @updatedAt
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -66,6 +68,7 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
   @@map("sessions")
 }
 
