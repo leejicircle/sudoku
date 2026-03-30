@@ -4,18 +4,17 @@ import {
   findUnlockableCells,
   generateAreaCondition,
   validateSolvabilityWithLocks,
-  posKey,
   getRowPositions,
   getColPositions,
   getBoxPositions,
-  getBoxIndex,
   getAreaPositions,
   countEmptyInArea,
   createConditionDescription,
 } from '@/lib/sudoku/lockSystem';
+import { posKey, getBoxIndex } from '@/lib/sudoku/utils';
 import { generateSolution } from '@/lib/sudoku/generator';
 import { createPuzzleFromSolution } from '@/lib/sudoku/solver';
-import type { Grid, LockedCell, LockCondition } from '@/types/game';
+import type { Grid, LockedCell, LockCondition, LockConditionType } from '@/types/game';
 
 // ─── posKey ─────────────────────────────────────────
 
@@ -150,10 +149,16 @@ describe('isAreaConditionMet', () => {
     expect(isAreaConditionMet(grid, condition, lockedKeys)).toBe(true);
   });
 
-  it('영역 조건이 아닌 유형은 false를 반환한다', () => {
+  it('미지원 조건 유형은 false를 반환한다', () => {
+    const grid: Grid = Array.from({ length: 9 }, () => Array(9).fill(1));
+    const condition: LockCondition = { type: 'cell-fill' as LockConditionType, target: 0, description: '' };
+    expect(isAreaConditionMet(grid, condition, new Set())).toBe(false);
+  });
+
+  it('number-complete 조건이 충족되면 true를 반환한다', () => {
     const grid: Grid = Array.from({ length: 9 }, () => Array(9).fill(1));
     const condition: LockCondition = { type: 'number-complete', target: 1, description: '' };
-    expect(isAreaConditionMet(grid, condition, new Set())).toBe(false);
+    expect(isAreaConditionMet(grid, condition, new Set())).toBe(true);
   });
 });
 

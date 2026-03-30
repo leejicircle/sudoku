@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   placeAreaLocks,
-  posKey,
 } from '@/lib/sudoku/lockSystem';
+import { posKey } from '@/lib/sudoku/utils';
 import { generateSolution } from '@/lib/sudoku/generator';
 import { createPuzzleFromSolution, hasUniqueSolution } from '@/lib/sudoku/solver';
 
