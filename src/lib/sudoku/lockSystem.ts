@@ -160,6 +160,30 @@ export const isNumberConditionMet = (
 };
 
 /**
+ * 숫자 조건 후보를 수집한다.
+ * 보드에 1개 이상 배치되었지만 9개 미만인 숫자만 반환한다.
+ * 보드에 아예 없는 숫자(0개)는 제외 — 완전히 빈 숫자를 조건으로 쓰면
+ * 플레이어가 해당 숫자를 처음부터 전부 채워야 하므로 난이도 조절상 제외한다.
+ *
+ * @param grid - 퍼즐 그리드
+ * @param lockedKeys - 잠금 칸 키 Set (해당 셀 포함)
+ * @returns 후보 숫자 배열
+ */
+const getNumberConditionCandidates = (
+  grid: Grid,
+  lockedKeys: Set<string>,
+): Digit[] => {
+  const candidates: Digit[] = [];
+  for (const d of DIGITS) {
+    const placed = countDigitPlacements(grid, d, lockedKeys);
+    if (placed >= 1 && placed < BOARD_SIZE) {
+      candidates.push(d);
+    }
+  }
+  return candidates;
+};
+
+/**
  * 특정 위치에 대해 유효한 숫자 조건을 생성한다.
  * 잠금 칸이 가진 정답 숫자가 아닌, 보드에 아직 완성되지 않은 다른 숫자를 조건으로 선택.
  *
@@ -178,16 +202,7 @@ export const generateNumberCondition = (
   const updatedLockedKeys = new Set(lockedKeys);
   updatedLockedKeys.add(posKey(pos.row, pos.col));
 
-  // 아직 보드에 9개 미만인 숫자 후보를 수집
-  const candidates: Digit[] = [];
-  for (const d of DIGITS) {
-    const placed = countDigitPlacements(grid, d, updatedLockedKeys);
-    // 이미 완성된 숫자는 제외, 최소 1개 이상 채워진 숫자만 선택 (너무 어렵지 않게)
-    if (placed >= 1 && placed < BOARD_SIZE) {
-      candidates.push(d);
-    }
-  }
-
+  const candidates = getNumberConditionCandidates(grid, updatedLockedKeys);
   if (candidates.length === 0) return null;
 
   const digit = candidates[Math.floor(Math.random() * candidates.length)];
@@ -291,10 +306,14 @@ export const generateCondition = (
   }
 
   // 숫자 조건 후보
-  if (allowedTypes.includes('number-complete') && solution) {
-    for (const d of DIGITS) {
-      const placed = countDigitPlacements(grid, d, updatedLockedKeys);
-      if (placed >= 1 && placed < BOARD_SIZE) {
+  if (allowedTypes.includes('number-complete')) {
+    if (!solution) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[lockSystem] number-complete 조건 생성에는 solution 파라미터가 필요합니다.');
+      }
+    } else {
+      const numberCandidates = getNumberConditionCandidates(grid, updatedLockedKeys);
+      for (const d of numberCandidates) {
         candidates.push({
           type: 'number-complete',
           target: d,

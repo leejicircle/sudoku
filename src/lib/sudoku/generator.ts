@@ -138,7 +138,3 @@ export const isValidSolution = (grid: SolutionGrid): boolean => {
  */
 export { createEmptyGrid, fillGrid, BOARD_SIZE, BOX_SIZE, DIGITS };
 
-/**
- * @deprecated 테스트 호환용 re-export — 새 코드에서는 utils에서 직접 import
- */
-export { shuffle, canPlaceInNumberGrid as canPlace } from '@/lib/sudoku/utils';

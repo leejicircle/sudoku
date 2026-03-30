@@ -2,12 +2,11 @@ import { describe, it, expect } from 'vitest';
 import {
   generateSolution,
   isValidSolution,
-  canPlace,
   createEmptyGrid,
   fillGrid,
-  shuffle,
   BOARD_SIZE,
 } from '@/lib/sudoku/generator';
+import { shuffle, canPlaceInNumberGrid as canPlace } from '@/lib/sudoku/utils';
 import type { SolutionGrid } from '@/types/game';
 
 describe('generator', () => {
