@@ -461,16 +461,19 @@ export const placeAreaLocks = (
 // ─── 복합 조건 생성 ──────────────────────────────────
 
 /**
- * 특정 위치에 대해 복합 조건(2개)을 생성한다.
- * 서로 다른 유형의 조건 2개를 반환한다.
- * 2개를 확보할 수 없으면 1개만 반환한다.
+ * 특정 위치에 대해 복합 조건(최대 2개)을 생성한다.
+ * 서로 다른 유형(또는 같은 유형이라도 다른 target)의 조건 2개를 반환한다.
+ *
+ * 후보가 부족하면 1개만 반환할 수 있다 — 이는 의도적 동작이다.
+ * 허용 유형이 제한적이거나 영역에 빈 칸이 부족하면 2개 확보가 불가능하므로,
+ * 1개라도 유효한 조건을 반환하여 잠금 배치 자체는 진행되도록 한다.
  *
  * @param grid - 퍼즐 그리드
  * @param pos - 잠금 칸 위치
  * @param lockedKeys - 이미 잠긴 셀 키 Set
  * @param allowedTypes - 허용된 조건 유형
  * @param solution - 정답 그리드
- * @returns 조건 배열 (최대 2개) 또는 빈 배열
+ * @returns 조건 배열 (1~2개) 또는 빈 배열 (후보 없음)
  */
 export const generateCompositeConditions = (
   grid: Grid,
@@ -774,11 +777,30 @@ export const placeLocks = (
     }
   }
 
-  // 연쇄 잠금 설정
+  // 배치 부족 경고
+  if (lockedCells.length < count && process.env.NODE_ENV !== 'production') {
+    console.warn(
+      `[lockSystem] 잠금 칸 배치 부족: 요청 ${count}개, 실제 ${lockedCells.length}개. ` +
+      `빈 칸 부족 또는 풀이 검증 실패가 원인일 수 있습니다.`,
+    );
+  }
+
+  // 연쇄 잠금 설정 (잠금 수가 3개 이상일 때만 — 2개 이하에서는 체인 밀도가 과도)
   let finalLockedCells = lockedCells;
-  if (options.allowChain && lockedCells.length >= 2) {
+  if (options.allowChain && lockedCells.length >= 3) {
     const chainCount = Math.max(1, Math.round(lockedCells.length * chainRatio));
     finalLockedCells = setupChainLinks(lockedCells, chainCount);
+  }
+
+  // 최종 통합 검증: 개별 검증을 통과했더라도 전체 조합이 유효한지 확인
+  if (finalLockedCells.length > 0) {
+    if (!validateSolvabilityWithLocks(workingPuzzle, solution, finalLockedCells)) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[lockSystem] 최종 통합 검증 실패 — 체인 없이 재시도합니다.');
+      }
+      // 체인 제거 후 개별 검증 통과한 원본으로 fallback
+      finalLockedCells = lockedCells;
+    }
   }
 
   return {
