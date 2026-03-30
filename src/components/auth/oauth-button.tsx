@@ -2,7 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GoogleLogo from "./google-logo";
 import NaverLogo from "./naver-logo";
@@ -49,43 +49,57 @@ const OAuthButton = ({
   className,
 }: OAuthButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const config = providerConfig[provider];
   const { Logo } = config;
 
   const handleClick = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       await signIn(provider, { callbackUrl });
     } catch {
       setIsLoading(false);
+      setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={isLoading}
-      aria-label={isLoading ? config.loadingLabel : config.label}
-      className={cn(
-        /* 공통 스타일 */
-        "flex w-full max-w-[320px] items-center justify-center gap-3",
-        "h-12 rounded-[var(--radius-md)] px-4",
-        "text-base font-medium",
-        "transition-all duration-[var(--duration-fast)]",
-        "cursor-pointer",
-        "disabled:cursor-not-allowed disabled:opacity-70",
-        /* 프로바이더별 스타일 */
-        config.className,
-        className
+    <div className="flex w-full max-w-[320px] flex-col items-center">
+      <button
+        onClick={handleClick}
+        disabled={isLoading}
+        aria-label={isLoading ? config.loadingLabel : config.label}
+        className={cn(
+          /* 공통 스타일 */
+          "flex w-full items-center justify-center gap-3",
+          "h-12 rounded-md px-4",
+          "text-base font-medium",
+          "transition-all duration-(--duration-fast)",
+          "cursor-pointer",
+          "disabled:cursor-not-allowed disabled:opacity-70",
+          /* 프로바이더별 스타일 */
+          config.className,
+          className
+        )}
+      >
+        {isLoading ? (
+          <Loader2 className="size-5 animate-spin" />
+        ) : (
+          <Logo size={20} />
+        )}
+        <span>{isLoading ? config.loadingLabel : config.label}</span>
+      </button>
+      {error && (
+        <div
+          className="mt-2 flex items-center gap-1.5 animate-in fade-in duration-200"
+          role="alert"
+        >
+          <AlertCircle className="size-3.5 shrink-0 text-destructive" />
+          <p className="text-[13px] text-destructive">{error}</p>
+        </div>
       )}
-    >
-      {isLoading ? (
-        <Loader2 className="size-5 animate-spin" />
-      ) : (
-        <Logo size={20} />
-      )}
-      <span>{isLoading ? config.loadingLabel : config.label}</span>
-    </button>
+    </div>
   );
 };
 
