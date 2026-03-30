@@ -11,46 +11,7 @@
  */
 
 import type { CellValue, Digit, Grid, SolutionGrid, SolveResult } from '@/types/game';
-import { BOARD_SIZE, BOX_SIZE, DIGITS } from '@/lib/sudoku/generator';
-
-// ─── 내부 유틸 ──────────────────────────────────────
-
-/**
- * Grid를 깊은 복사한다.
- */
-const cloneGrid = (grid: Grid): Grid =>
-  grid.map((row) => [...row]);
-
-/**
- * 특정 위치에 숫자를 놓을 수 있는지 검사한다. (Grid 타입용)
- *
- * @todo generator.ts의 canPlace와 로직 중복 — 추후 공통 유틸로 통합 예정
- *       (현재는 Grid(CellValue[][]) vs number[][] 타입 차이로 분리)
- */
-const canPlaceInGrid = (
-  grid: Grid,
-  row: number,
-  col: number,
-  num: Digit,
-): boolean => {
-  // 행 검사
-  for (let c = 0; c < BOARD_SIZE; c++) {
-    if (grid[row][c] === num) return false;
-  }
-  // 열 검사
-  for (let r = 0; r < BOARD_SIZE; r++) {
-    if (grid[r][col] === num) return false;
-  }
-  // 3×3 박스 검사
-  const boxRow = Math.floor(row / BOX_SIZE) * BOX_SIZE;
-  const boxCol = Math.floor(col / BOX_SIZE) * BOX_SIZE;
-  for (let r = boxRow; r < boxRow + BOX_SIZE; r++) {
-    for (let c = boxCol; c < boxCol + BOX_SIZE; c++) {
-      if (grid[r][c] === num) return false;
-    }
-  }
-  return true;
-};
+import { BOARD_SIZE, BOX_SIZE, DIGITS, cloneGrid, canPlaceInGrid } from '@/lib/sudoku/utils';
 
 /**
  * 특정 셀의 후보 숫자 목록을 구한다.

@@ -1,12 +1,13 @@
 /**
- * 잠금 칸 시스템 — 영역 조건 (행/열/박스)
- * 특정 영역을 완성하면 잠금 칸이 해제되는 시스템을 구현한다.
+ * 잠금 칸 시스템 — 영역 조건 + 숫자 조건
+ * 특정 영역 완성 또는 숫자 완성 시 잠금 칸이 해제되는 시스템을 구현한다.
  *
  * @description
  * 1. 영역 조건: row-complete, col-complete, box-complete
- * 2. 잠금 칸은 빈 칸 중에서 선택하여 조건을 부여
- * 3. 잠금 포함 상태에서도 퍼즐이 풀이 가능해야 함
- * 4. 순수 함수 — 사이드 이펙트 없음
+ * 2. 숫자 조건: number-complete (특정 숫자 9개 모두 배치)
+ * 3. 잠금 칸은 빈 칸 중에서 선택하여 조건을 부여
+ * 4. 잠금 포함 상태에서도 퍼즐이 풀이 가능해야 함
+ * 5. 순수 함수 — 사이드 이펙트 없음
  *
  * @see GitHub Issue #3 — Epic: 스도쿠 엔진 개발
  */
@@ -19,30 +20,10 @@ import type {
   LockCondition,
   LockConditionType,
   CellValue,
+  Digit,
 } from '@/types/game';
-import { BOARD_SIZE, BOX_SIZE } from '@/lib/sudoku/generator';
+import { BOARD_SIZE, BOX_SIZE, DIGITS, cloneGrid, shuffle, posKey, getBoxIndex } from '@/lib/sudoku/utils';
 import { hasUniqueSolution } from '@/lib/sudoku/solver';
-
-// ─── 유틸 ───────────────────────────────────────────
-
-/** Position을 문자열 키로 변환 */
-const posKey = (row: number, col: number): string => `${row},${col}`;
-
-/** Grid를 깊은 복사한다 */
-const cloneGrid = (grid: Grid): Grid =>
-  grid.map((row) => [...row]);
-
-/**
- * 배열을 Fisher-Yates 알고리즘으로 셔플한다 (불변 — 새 배열 반환).
- */
-const shuffle = <T>(arr: readonly T[]): T[] => {
-  const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-};
 
 // ─── 영역 조회 ──────────────────────────────────────
 
@@ -73,12 +54,6 @@ const getBoxPositions = (boxIndex: number): Position[] => {
   }
   return positions;
 };
-
-/**
- * 셀이 속한 3×3 박스 인덱스를 반환한다.
- */
-const getBoxIndex = (row: number, col: number): number =>
-  Math.floor(row / BOX_SIZE) * BOX_SIZE + Math.floor(col / BOX_SIZE);
 
 /**
  * 조건 유형에 따른 영역 셀 위치를 반환한다.
@@ -129,12 +104,113 @@ export const isAreaConditionMet = (
 ): boolean => {
   const { type, target } = condition;
 
+  if (type === 'number-complete') {
+    return isNumberConditionMet(grid, target as Digit, lockedKeys);
+  }
+
   if (type !== 'row-complete' && type !== 'col-complete' && type !== 'box-complete') {
-    return false; // 영역 조건이 아닌 경우
+    return false; // 미지원 조건 유형
   }
 
   const positions = getAreaPositions(type, target);
   return countEmptyInArea(grid, positions, lockedKeys) === 0;
+};
+
+// ─── 숫자 조건 평가 ─────────────────────────────────
+
+/**
+ * 보드에서 특정 숫자가 나타나야 할 총 횟수(9) 대비 현재 채워진 수를 센다.
+ * 잠금 칸은 제외한다.
+ *
+ * @param grid - 현재 보드
+ * @param digit - 대상 숫자 (1~9)
+ * @param lockedKeys - 잠금 칸 키 Set
+ * @returns 해당 숫자가 채워진 횟수 (잠금 칸 제외)
+ */
+export const countDigitPlacements = (
+  grid: Grid,
+  digit: Digit,
+  lockedKeys: Set<string>,
+): number => {
+  let count = 0;
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      if (lockedKeys.has(posKey(r, c))) continue;
+      if (grid[r][c] === digit) count++;
+    }
+  }
+  return count;
+};
+
+/**
+ * 숫자 완성 조건이 충족되었는지 검사한다.
+ * 특정 숫자가 보드에 9번 모두 배치되면(잠금 칸 제외) true.
+ *
+ * @param grid - 현재 보드 상태
+ * @param digit - 대상 숫자
+ * @param lockedKeys - 잠금 칸 키 Set
+ * @returns 조건 충족 여부
+ */
+export const isNumberConditionMet = (
+  grid: Grid,
+  digit: Digit,
+  lockedKeys: Set<string>,
+): boolean => {
+  return countDigitPlacements(grid, digit, lockedKeys) >= BOARD_SIZE;
+};
+
+/**
+ * 숫자 조건 후보를 수집한다.
+ * 보드에 1개 이상 배치되었지만 9개 미만인 숫자만 반환한다.
+ * 보드에 아예 없는 숫자(0개)는 제외 — 완전히 빈 숫자를 조건으로 쓰면
+ * 플레이어가 해당 숫자를 처음부터 전부 채워야 하므로 난이도 조절상 제외한다.
+ *
+ * @param grid - 퍼즐 그리드
+ * @param lockedKeys - 잠금 칸 키 Set (해당 셀 포함)
+ * @returns 후보 숫자 배열
+ */
+const getNumberConditionCandidates = (
+  grid: Grid,
+  lockedKeys: Set<string>,
+): Digit[] => {
+  const candidates: Digit[] = [];
+  for (const d of DIGITS) {
+    const placed = countDigitPlacements(grid, d, lockedKeys);
+    if (placed >= 1 && placed < BOARD_SIZE) {
+      candidates.push(d);
+    }
+  }
+  return candidates;
+};
+
+/**
+ * 특정 위치에 대해 유효한 숫자 조건을 생성한다.
+ * 잠금 칸이 가진 정답 숫자가 아닌, 보드에 아직 완성되지 않은 다른 숫자를 조건으로 선택.
+ *
+ * @param grid - 퍼즐 그리드
+ * @param pos - 잠금 칸 위치
+ * @param solution - 정답 그리드
+ * @param lockedKeys - 이미 잠긴 셀 키 Set
+ * @returns 유효한 숫자 조건 또는 null
+ */
+export const generateNumberCondition = (
+  grid: Grid,
+  pos: Position,
+  solution: SolutionGrid,
+  lockedKeys: Set<string>,
+): LockCondition | null => {
+  const updatedLockedKeys = new Set(lockedKeys);
+  updatedLockedKeys.add(posKey(pos.row, pos.col));
+
+  const candidates = getNumberConditionCandidates(grid, updatedLockedKeys);
+  if (candidates.length === 0) return null;
+
+  const digit = candidates[Math.floor(Math.random() * candidates.length)];
+  return {
+    type: 'number-complete',
+    target: digit,
+    description: createConditionDescription('number-complete', digit),
+  };
 };
 
 /**
@@ -175,38 +251,39 @@ const createConditionDescription = (type: LockConditionType, target: number): st
       const boxCol = (target % 3) + 1;
       return `${boxRow}-${boxCol} 박스를 완성하세요`;
     }
+    case 'number-complete': return `숫자 ${target}을(를) 모두 배치하세요`;
     default: return '';
   }
 };
 
 /**
- * 특정 위치에 대해 유효한 영역 조건을 생성한다.
- * 잠금 칸이 속한 영역 중, 다른 빈 칸이 1개 이상인 영역을 조건으로 선택.
+ * 특정 위치에 대해 유효한 조건을 생성한다 (영역 + 숫자 조건 통합).
+ * 허용된 유형 중에서 유효한 조건을 랜덤 선택.
  *
  * @param grid - 퍼즐 그리드
  * @param pos - 잠금 칸 위치
  * @param lockedKeys - 이미 잠긴 셀 키 Set
  * @param allowedTypes - 허용된 조건 유형
+ * @param solution - 정답 그리드 (number-complete 조건 생성 시 필요)
  * @returns 유효한 조건 또는 null
  */
-export const generateAreaCondition = (
+export const generateCondition = (
   grid: Grid,
   pos: Position,
   lockedKeys: Set<string>,
   allowedTypes: LockConditionType[],
+  solution?: SolutionGrid,
 ): LockCondition | null => {
-  const areaTypes = allowedTypes.filter(
-    (t): t is 'row-complete' | 'col-complete' | 'box-complete' => AREA_LOCK_TYPES.includes(t),
-  );
-
-  if (areaTypes.length === 0) return null;
+  const candidates: LockCondition[] = [];
 
   // 이 셀을 잠금 후보로 추가
   const updatedLockedKeys = new Set(lockedKeys);
   updatedLockedKeys.add(posKey(pos.row, pos.col));
 
-  // 가능한 조건 후보 수집
-  const candidates: LockCondition[] = [];
+  // 영역 조건 후보
+  const areaTypes = allowedTypes.filter(
+    (t): t is 'row-complete' | 'col-complete' | 'box-complete' => AREA_LOCK_TYPES.includes(t),
+  );
 
   for (const type of areaTypes) {
     let target: number;
@@ -219,7 +296,6 @@ export const generateAreaCondition = (
     const positions = getAreaPositions(type, target);
     const emptyCount = countEmptyInArea(grid, positions, updatedLockedKeys);
 
-    // 영역에 다른 빈 칸이 1개 이상이어야 의미 있는 조건
     if (emptyCount >= 1) {
       candidates.push({
         type,
@@ -229,10 +305,39 @@ export const generateAreaCondition = (
     }
   }
 
+  // 숫자 조건 후보
+  if (allowedTypes.includes('number-complete')) {
+    if (!solution) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[lockSystem] number-complete 조건 생성에는 solution 파라미터가 필요합니다.');
+      }
+    } else {
+      const numberCandidates = getNumberConditionCandidates(grid, updatedLockedKeys);
+      for (const d of numberCandidates) {
+        candidates.push({
+          type: 'number-complete',
+          target: d,
+          description: createConditionDescription('number-complete', d),
+        });
+      }
+    }
+  }
+
   if (candidates.length === 0) return null;
 
-  // 랜덤 선택
   return candidates[Math.floor(Math.random() * candidates.length)];
+};
+
+/**
+ * @deprecated generateCondition으로 대체. 하위 호환용.
+ */
+export const generateAreaCondition = (
+  grid: Grid,
+  pos: Position,
+  lockedKeys: Set<string>,
+  allowedTypes: LockConditionType[],
+): LockCondition | null => {
+  return generateCondition(grid, pos, lockedKeys, allowedTypes);
 };
 
 // ─── 풀이 가능성 검증 ───────────────────────────────
@@ -329,7 +434,7 @@ export const placeAreaLocks = (
     if (lockedCells.length >= count) break;
 
     // 이 위치에 조건 생성 시도
-    const condition = generateAreaCondition(workingPuzzle, pos, lockedKeys, allowedTypes);
+    const condition = generateCondition(workingPuzzle, pos, lockedKeys, allowedTypes, solution);
     if (!condition) continue;
 
     // 잠금 추가
@@ -354,15 +459,13 @@ export const placeAreaLocks = (
 
 /**
  * @internal 테스트 전용 export — 외부에서 직접 사용 금지
+ * countDigitPlacements, isNumberConditionMet, generateNumberCondition은
+ * 이미 export const로 선언되어 있으므로 여기에 중복하지 않음.
  */
 export {
-  posKey,
-  cloneGrid,
-  shuffle,
   getRowPositions,
   getColPositions,
   getBoxPositions,
-  getBoxIndex,
   getAreaPositions,
   countEmptyInArea,
   createConditionDescription,
