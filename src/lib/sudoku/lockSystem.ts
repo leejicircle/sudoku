@@ -22,6 +22,7 @@ import type {
   LockConditionType,
   CellValue,
   Digit,
+  DeadlockCheckResult,
 } from '@/types/game';
 import { BOARD_SIZE, BOX_SIZE, DIGITS, cloneGrid, shuffle, posKey, getBoxIndex } from '@/lib/sudoku/utils';
 import { hasUniqueSolution } from '@/lib/sudoku/solver';
@@ -166,16 +167,22 @@ export const isNumberConditionMet = (
  * 보드에 아예 없는 숫자(0개)는 제외 — 완전히 빈 숫자를 조건으로 쓰면
  * 플레이어가 해당 숫자를 처음부터 전부 채워야 하므로 난이도 조절상 제외한다.
  *
+ * 잠금 셀 자체의 정답 숫자는 제외한다 — 자기 숫자가 조건 대상이 되면
+ * 카운트에서 자신이 제외되어 조건 충족이 불가능하다 (데드락 원인).
+ *
  * @param grid - 퍼즐 그리드
  * @param lockedKeys - 잠금 칸 키 Set (해당 셀 포함)
+ * @param excludeDigit - 제외할 숫자 (잠금 셀 자체의 정답 숫자)
  * @returns 후보 숫자 배열
  */
 const getNumberConditionCandidates = (
   grid: Grid,
   lockedKeys: Set<string>,
+  excludeDigit?: Digit,
 ): Digit[] => {
   const candidates: Digit[] = [];
   for (const d of DIGITS) {
+    if (d === excludeDigit) continue; // 자기 숫자 제외 (데드락 방지)
     const placed = countDigitPlacements(grid, d, lockedKeys);
     if (placed >= 1 && placed < BOARD_SIZE) {
       candidates.push(d);
@@ -203,7 +210,8 @@ export const generateNumberCondition = (
   const updatedLockedKeys = new Set(lockedKeys);
   updatedLockedKeys.add(posKey(pos.row, pos.col));
 
-  const candidates = getNumberConditionCandidates(grid, updatedLockedKeys);
+  const selfDigit = solution[pos.row][pos.col] as Digit;
+  const candidates = getNumberConditionCandidates(grid, updatedLockedKeys, selfDigit);
   if (candidates.length === 0) return null;
 
   const digit = candidates[Math.floor(Math.random() * candidates.length)];
@@ -313,7 +321,8 @@ export const generateCondition = (
         console.warn('[lockSystem] number-complete 조건 생성에는 solution 파라미터가 필요합니다.');
       }
     } else {
-      const numberCandidates = getNumberConditionCandidates(grid, updatedLockedKeys);
+      const selfDigit = solution[pos.row][pos.col] as Digit;
+      const numberCandidates = getNumberConditionCandidates(grid, updatedLockedKeys, selfDigit);
       for (const d of numberCandidates) {
         candidates.push({
           type: 'number-complete',
@@ -514,7 +523,8 @@ export const generateCompositeConditions = (
 
   // 숫자 조건 후보
   if (allowedTypes.includes('number-complete') && solution) {
-    const numberCandidates = getNumberConditionCandidates(grid, updatedLockedKeys);
+    const selfDigit = solution[pos.row][pos.col] as Digit;
+    const numberCandidates = getNumberConditionCandidates(grid, updatedLockedKeys, selfDigit);
     for (const d of numberCandidates) {
       allCandidates.push({
         type: 'number-complete',
@@ -792,14 +802,33 @@ export const placeLocks = (
     finalLockedCells = setupChainLinks(lockedCells, chainCount);
   }
 
-  // 최종 통합 검증: 개별 검증을 통과했더라도 전체 조합이 유효한지 확인
+  // 최종 통합 검증: 풀이 가능성 + 데드락 검사
   if (finalLockedCells.length > 0) {
-    if (!validateSolvabilityWithLocks(workingPuzzle, solution, finalLockedCells)) {
+    const solvable = validateSolvabilityWithLocks(workingPuzzle, solution, finalLockedCells);
+    const deadlockResult = checkDeadlock(workingPuzzle, solution, finalLockedCells);
+
+    if (!solvable || deadlockResult.hasDeadlock) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('[lockSystem] 최종 통합 검증 실패 — 체인 없이 재시도합니다.');
+        const reason = !solvable ? '풀이 불가' : `데드락: ${deadlockResult.reason}`;
+        console.warn(`[lockSystem] 최종 검증 실패 (${reason}) — 체인 없이 재시도합니다.`);
       }
       // 체인 제거 후 개별 검증 통과한 원본으로 fallback
       finalLockedCells = lockedCells;
+
+      // fallback에서도 데드락 검사 → 원인 셀 제거
+      const fallbackCheck = checkDeadlock(workingPuzzle, solution, finalLockedCells);
+      if (fallbackCheck.hasDeadlock) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(`[lockSystem] fallback에서도 데드락 감지: ${fallbackCheck.reason} — 원인 셀을 제거합니다.`);
+        }
+        // 데드락 원인 셀을 제거하여 안전한 잠금 목록만 유지
+        const involvedKeys = new Set(
+          (fallbackCheck.involvedCells || []).map((p) => posKey(p.row, p.col)),
+        );
+        finalLockedCells = finalLockedCells.filter(
+          (lc) => !involvedKeys.has(posKey(lc.position.row, lc.position.col)),
+        );
+      }
     }
   }
 
@@ -809,11 +838,177 @@ export const placeLocks = (
   };
 };
 
+// ─── 데드락 검증 ────────────────────────────────────
+
+/**
+ * 체인 관계에 순환이 있는지 검사한다 (DFS 기반).
+ *
+ * @param lockedCells - 잠금 칸 목록
+ * @returns 순환이 있으면 true
+ */
+export const hasChainCycle = (lockedCells: LockedCell[]): boolean => {
+  // 인접 리스트 구축
+  const adj = new Map<string, string[]>();
+  for (const lc of lockedCells) {
+    const key = posKey(lc.position.row, lc.position.col);
+    if (lc.chainUnlocks && lc.chainUnlocks.length > 0) {
+      adj.set(key, lc.chainUnlocks.map((p) => posKey(p.row, p.col)));
+    }
+  }
+
+  // DFS 순환 탐지: 0=미방문, 1=진행중, 2=완료
+  const state = new Map<string, number>();
+  for (const lc of lockedCells) {
+    state.set(posKey(lc.position.row, lc.position.col), 0);
+  }
+
+  const dfs = (key: string): boolean => {
+    if (state.get(key) === 1) return true;  // 순환 발견
+    if (state.get(key) === 2) return false; // 이미 검사 완료
+
+    state.set(key, 1); // 진행중
+    const neighbors = adj.get(key) || [];
+    for (const next of neighbors) {
+      if (dfs(next)) return true;
+    }
+    state.set(key, 2); // 완료
+    return false;
+  };
+
+  for (const lc of lockedCells) {
+    const key = posKey(lc.position.row, lc.position.col);
+    if (state.get(key) === 0) {
+      if (dfs(key)) return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * 잠금 칸 조합의 데드락 여부를 검증한다.
+ *
+ * 시뮬레이션 방식:
+ * 1. 모든 비잠금 빈 칸을 정답값으로 채운 그리드를 만든다.
+ * 2. 잠금 칸은 null로 유지한다.
+ * 3. 반복적으로 조건 충족된 잠금 칸 + 체인 캐스케이드를 해제한다.
+ * 4. 해제된 셀의 정답값을 그리드에 반영하고, 다시 조건을 검사한다.
+ * 5. 더 이상 해제할 셀이 없는데 잠금 셀이 남아있으면 데드락이다.
+ *
+ * @param puzzle - 퍼즐 그리드
+ * @param solution - 정답 그리드
+ * @param lockedCells - 잠금 칸 목록
+ * @returns 데드락 검증 결과
+ *
+ * @example
+ * ```ts
+ * const result = checkDeadlock(puzzle, solution, lockedCells);
+ * if (result.hasDeadlock) {
+ *   console.log(result.reason);          // "2개의 잠금 칸이 해제 불가능합니다"
+ *   console.log(result.involvedCells);   // [{row: 0, col: 3}, {row: 2, col: 5}]
+ * }
+ * ```
+ */
+export const checkDeadlock = (
+  puzzle: Grid,
+  solution: SolutionGrid,
+  lockedCells: LockedCell[],
+): DeadlockCheckResult => {
+  if (lockedCells.length === 0) {
+    return { hasDeadlock: false };
+  }
+
+  // 1. 순환 체인 검사
+  if (hasChainCycle(lockedCells)) {
+    return {
+      hasDeadlock: true,
+      reason: '체인 관계에 순환이 존재합니다',
+      involvedCells: lockedCells.map((lc) => lc.position),
+    };
+  }
+
+  // 2. 시뮬레이션 그리드: 비잠금 빈 칸을 정답으로 채움
+  const simGrid = cloneGrid(puzzle);
+  const lockedKeySet = new Set(
+    lockedCells.map((lc) => posKey(lc.position.row, lc.position.col)),
+  );
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      if (simGrid[r][c] === null && !lockedKeySet.has(posKey(r, c))) {
+        simGrid[r][c] = solution[r][c] as CellValue;
+      }
+    }
+  }
+
+  // 3. 점진적 해제 시뮬레이션
+  let remaining = [...lockedCells];
+  let changed = true;
+
+  while (changed && remaining.length > 0) {
+    changed = false;
+    const currentLockedKeys = new Set(
+      remaining.map((lc) => posKey(lc.position.row, lc.position.col)),
+    );
+
+    // 조건 충족된 셀 찾기
+    const directUnlockKeys = new Set<string>();
+    for (const lc of remaining) {
+      if (lc.conditions.every((cond) => isAreaConditionMet(simGrid, cond, currentLockedKeys))) {
+        directUnlockKeys.add(posKey(lc.position.row, lc.position.col));
+      }
+    }
+
+    // 체인 캐스케이드 (BFS)
+    const allUnlockKeys = new Set(directUnlockKeys);
+    const queue = [...directUnlockKeys];
+    // 빠른 조회를 위한 맵
+    const remainingMap = new Map(
+      remaining.map((lc) => [posKey(lc.position.row, lc.position.col), lc]),
+    );
+
+    while (queue.length > 0) {
+      const key = queue.shift()!;
+      const cell = remainingMap.get(key);
+      if (!cell?.chainUnlocks) continue;
+
+      for (const target of cell.chainUnlocks) {
+        const targetKey = posKey(target.row, target.col);
+        if (!allUnlockKeys.has(targetKey) && currentLockedKeys.has(targetKey)) {
+          allUnlockKeys.add(targetKey);
+          queue.push(targetKey);
+        }
+      }
+    }
+
+    // 해제: 정답값 반영
+    if (allUnlockKeys.size > 0) {
+      for (const lc of remaining) {
+        const key = posKey(lc.position.row, lc.position.col);
+        if (allUnlockKeys.has(key)) {
+          simGrid[lc.position.row][lc.position.col] = solution[lc.position.row][lc.position.col] as CellValue;
+        }
+      }
+      remaining = remaining.filter(
+        (lc) => !allUnlockKeys.has(posKey(lc.position.row, lc.position.col)),
+      );
+      changed = true;
+    }
+  }
+
+  // 4. 결과 판정
+  if (remaining.length === 0) {
+    return { hasDeadlock: false };
+  }
+
+  return {
+    hasDeadlock: true,
+    reason: `${remaining.length}개의 잠금 칸이 해제 불가능합니다`,
+    involvedCells: remaining.map((lc) => lc.position),
+  };
+};
+
 /**
  * @internal 테스트 전용 export — 외부에서 직접 사용 금지
- * countDigitPlacements, isNumberConditionMet, generateNumberCondition,
- * generateCompositeConditions, setupChainLinks, findUnlockableCellsWithChain은
- * 이미 export const로 선언되어 있으므로 여기에 중복하지 않음.
  */
 export {
   getRowPositions,

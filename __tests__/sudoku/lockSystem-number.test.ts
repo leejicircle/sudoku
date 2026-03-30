@@ -198,17 +198,16 @@ describe('generateNumberCondition', () => {
     }
   });
 
-  it('완성된 보드에서도 잠금 대상 셀의 숫자가 후보가 된다', () => {
+  it('완성된 보드에서 자기 숫자는 후보에서 제외된다 (데드락 방지)', () => {
     const solution = createTestSolution();
     // 빈 칸 없이 완성된 보드
     const grid: Grid = solution.map((row) => row.map((v) => v as Digit | null));
     const lockedKeys = new Set<string>();
 
-    // (0,0)=5를 잠금 대상으로 지정하면, 5는 잠금 칸 제외 시 8개 → 후보
+    // (0,0)=5를 잠금 대상으로 지정하면, 5는 자기 숫자이므로 제외
+    // 다른 모든 숫자는 9개로 완성 → 후보 없음 → null
     const condition = generateNumberCondition(grid, { row: 0, col: 0 }, solution, lockedKeys);
-    expect(condition).not.toBeNull();
-    // 잠금 대상 셀의 숫자(5)만 후보가 됨 (다른 숫자는 여전히 9개)
-    expect(condition!.target).toBe(5);
+    expect(condition).toBeNull();
   });
 
   it('모든 셀이 이미 잠금 처리되면 null을 반환한다', () => {
