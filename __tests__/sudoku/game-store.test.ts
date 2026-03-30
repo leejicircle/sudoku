@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useGameStore } from '@/stores/game-store';
+import {
+  useGameStore,
+  serializeCell,
+  deserializeCell,
+  serializeBoard,
+  deserializeBoard,
+  serializeHistory,
+  deserializeHistory,
+} from '@/stores/game-store';
 import type { Digit, SolutionGrid, Grid, Cell } from '@/types/game';
 
 // ─── 헬퍼 ──────────────────────────────────────────
@@ -536,5 +544,156 @@ describe('히스토리 크기 제한', () => {
     }
 
     expect(useGameStore.getState().history.length).toBeLessThanOrEqual(50);
+  });
+});
+
+// ─── 직렬화 / 역직렬화 ─────────────────────────────
+
+describe('직렬화', () => {
+  const sampleCell: Cell = {
+    value: 5,
+    isGiven: true,
+    notes: new Set<Digit>([1, 3, 7]),
+    isError: false,
+    isLocked: false,
+  };
+
+  it('serializeCell — Set을 Array로 변환한다', () => {
+    const serialized = serializeCell(sampleCell);
+    expect(serialized.value).toBe(5);
+    expect(serialized.isGiven).toBe(true);
+    expect(Array.isArray(serialized.notes)).toBe(true);
+    expect(serialized.notes).toContain(1);
+    expect(serialized.notes).toContain(3);
+    expect(serialized.notes).toContain(7);
+    expect(serialized.notes).toHaveLength(3);
+  });
+
+  it('deserializeCell — Array를 Set으로 복원한다', () => {
+    const serialized = serializeCell(sampleCell);
+    const restored = deserializeCell(serialized);
+    expect(restored.notes instanceof Set).toBe(true);
+    expect(restored.notes.has(1)).toBe(true);
+    expect(restored.notes.has(3)).toBe(true);
+    expect(restored.notes.has(7)).toBe(true);
+    expect(restored.value).toBe(5);
+  });
+
+  it('serializeCell → deserializeCell 왕복이 동등하다', () => {
+    const restored = deserializeCell(serializeCell(sampleCell));
+    expect(restored.value).toBe(sampleCell.value);
+    expect(restored.isGiven).toBe(sampleCell.isGiven);
+    expect(restored.isError).toBe(sampleCell.isError);
+    expect(restored.isLocked).toBe(sampleCell.isLocked);
+    expect([...restored.notes].sort()).toEqual([...sampleCell.notes].sort());
+  });
+
+  it('빈 notes도 올바르게 직렬화된다', () => {
+    const emptyNoteCell: Cell = { ...sampleCell, notes: new Set() };
+    const serialized = serializeCell(emptyNoteCell);
+    expect(serialized.notes).toEqual([]);
+
+    const restored = deserializeCell(serialized);
+    expect(restored.notes.size).toBe(0);
+  });
+
+  it('serializeBoard → deserializeBoard 왕복', () => {
+    useGameStore.getState().initGame(1);
+    const { board } = useGameStore.getState();
+
+    const serialized = serializeBoard(board);
+    expect(Array.isArray(serialized)).toBe(true);
+    expect(serialized).toHaveLength(9);
+
+    const restored = deserializeBoard(serialized);
+    expect(restored).toHaveLength(9);
+
+    // notes가 Set으로 복원되었는지
+    for (const row of restored) {
+      for (const cell of row) {
+        expect(cell.notes instanceof Set).toBe(true);
+      }
+    }
+
+    // 값이 동일한지
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        expect(restored[r][c].value).toBe(board[r][c].value);
+        expect(restored[r][c].isGiven).toBe(board[r][c].isGiven);
+      }
+    }
+  });
+
+  it('serializeHistory → deserializeHistory 왕복', () => {
+    useGameStore.getState().initGame(1);
+    useGameStore.getState().setValue(0, 0, 5);
+    const { history } = useGameStore.getState();
+
+    expect(history.length).toBeGreaterThan(0);
+
+    const serialized = serializeHistory(history);
+    const restored = deserializeHistory(serialized);
+
+    expect(restored).toHaveLength(history.length);
+    expect(restored[0].board).toHaveLength(9);
+    expect(restored[0].board[0][0].notes instanceof Set).toBe(true);
+    expect(Array.isArray(restored[0].lockedCells)).toBe(true);
+  });
+
+  it('빈 히스토리도 올바르게 직렬화된다', () => {
+    const serialized = serializeHistory([]);
+    expect(serialized).toEqual([]);
+    const restored = deserializeHistory([]);
+    expect(restored).toEqual([]);
+  });
+});
+
+// ─── 완료 후 resume 방지 ────────────────────────────
+
+describe('완료 후 상태', () => {
+  beforeEach(() => {
+    useGameStore.getState().initGame(1);
+  });
+
+  it('완료 후 resume이 동작하지 않는다', () => {
+    useGameStore.getState().setValue(0, 0, 5);
+    useGameStore.getState().setValue(0, 1, 3);
+    useGameStore.getState().setValue(4, 4, 5);
+
+    expect(useGameStore.getState().isComplete).toBe(true);
+    expect(useGameStore.getState().isPaused).toBe(true);
+
+    useGameStore.getState().resume();
+    expect(useGameStore.getState().isPaused).toBe(true); // 여전히 일시정지
+  });
+
+  it('완료 후 undo가 동작하지 않는다', () => {
+    useGameStore.getState().setValue(0, 0, 5);
+    useGameStore.getState().setValue(0, 1, 3);
+    useGameStore.getState().setValue(4, 4, 5);
+
+    expect(useGameStore.getState().isComplete).toBe(true);
+
+    useGameStore.getState().undo();
+    expect(useGameStore.getState().board[4][4].value).toBe(5); // 변경 안 됨
+  });
+
+  it('완료 후 clearValue가 동작하지 않는다', () => {
+    useGameStore.getState().setValue(0, 0, 5);
+    useGameStore.getState().setValue(0, 1, 3);
+    useGameStore.getState().setValue(4, 4, 5);
+
+    useGameStore.getState().clearValue(0, 0);
+    expect(useGameStore.getState().board[0][0].value).toBe(5);
+  });
+
+  it('완료 후 toggleNote가 동작하지 않는다', () => {
+    useGameStore.getState().setValue(0, 0, 5);
+    useGameStore.getState().setValue(0, 1, 3);
+    useGameStore.getState().setValue(4, 4, 5);
+
+    useGameStore.getState().clearValue(0, 0); // 동작 안 함
+    useGameStore.getState().toggleNote(0, 0, 1); // 동작 안 함
+    expect(useGameStore.getState().board[0][0].notes.size).toBe(0);
   });
 });

@@ -217,7 +217,8 @@ const processUnlocks = (
 
 // ─── Board 직렬화 (persist용) ───────────────────────
 
-const serializeCell = (cell: Cell): SerializedCell => ({
+/** @internal 테스트 전용 — 외부에서 직접 사용 금지 */
+export const serializeCell = (cell: Cell): SerializedCell => ({
   value: cell.value,
   isGiven: cell.isGiven,
   notes: Array.from(cell.notes),
@@ -225,24 +226,29 @@ const serializeCell = (cell: Cell): SerializedCell => ({
   isLocked: cell.isLocked,
 });
 
-const deserializeCell = (data: SerializedCell): Cell => ({
+/** @internal 테스트 전용 — 외부에서 직접 사용 금지 */
+export const deserializeCell = (data: SerializedCell): Cell => ({
   ...data,
   notes: new Set(data.notes),
 });
 
-const serializeBoard = (board: Board): SerializedCell[][] =>
+/** @internal 테스트 전용 — 외부에서 직접 사용 금지 */
+export const serializeBoard = (board: Board): SerializedCell[][] =>
   board.map((row) => row.map(serializeCell));
 
-const deserializeBoard = (data: SerializedCell[][]): Board =>
+/** @internal 테스트 전용 — 외부에서 직접 사용 금지 */
+export const deserializeBoard = (data: SerializedCell[][]): Board =>
   data.map((row) => row.map(deserializeCell));
 
-const serializeHistory = (history: HistoryEntry[]): { board: SerializedCell[][]; lockedCells: LockedCell[] }[] =>
+/** @internal 테스트 전용 — 외부에서 직접 사용 금지 */
+export const serializeHistory = (history: HistoryEntry[]): { board: SerializedCell[][]; lockedCells: LockedCell[] }[] =>
   history.map((entry) => ({
     board: serializeBoard(entry.board),
     lockedCells: entry.lockedCells,
   }));
 
-const deserializeHistory = (data: { board: SerializedCell[][]; lockedCells: LockedCell[] }[]): HistoryEntry[] =>
+/** @internal 테스트 전용 — 외부에서 직접 사용 금지 */
+export const deserializeHistory = (data: { board: SerializedCell[][]; lockedCells: LockedCell[] }[]): HistoryEntry[] =>
   data.map((entry) => ({
     board: deserializeBoard(entry.board),
     lockedCells: entry.lockedCells,
