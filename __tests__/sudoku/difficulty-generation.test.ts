@@ -52,14 +52,30 @@ describe('generatePuzzle', () => {
     }
   }, 10000);
 
-  it('스테이지 15 퍼즐이 정상 생성된다', () => {
+  it('스테이지 1~10 퍼즐에는 잠금 칸이 없다', () => {
+    const result = generatePuzzle(5);
+    expect(result.lockedCells).toHaveLength(0);
+  }, 10000);
+
+  it('스테이지 15 퍼즐이 잠금 칸을 포함한다', () => {
     const result = generatePuzzle(15);
     expect(result.config.lockedCellCount).toBeGreaterThanOrEqual(1);
     expect(result.config.lockedCellCount).toBeLessThanOrEqual(3);
 
+    // 잠금 칸이 실제로 배치됨
+    expect(result.lockedCells.length).toBeGreaterThanOrEqual(1);
+    expect(result.lockedCells.length).toBeLessThanOrEqual(result.config.lockedCellCount);
+
     const emptyCells = countEmpty(result.puzzle);
     expect(emptyCells).toBeGreaterThanOrEqual(38);
     expect(emptyCells).toBeLessThanOrEqual(43);
+  }, 15000);
+
+  it('스테이지 15 잠금 칸의 위치가 빈 칸이다', () => {
+    const result = generatePuzzle(15);
+    for (const lc of result.lockedCells) {
+      expect(result.puzzle[lc.position.row][lc.position.col]).toBeNull();
+    }
   }, 15000);
 
   it('높은 난이도(스테이지 25) 퍼즐도 유일해를 가진다', () => {

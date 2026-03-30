@@ -10,10 +10,11 @@
  * @see GitHub Issue #3 — Epic: 스도쿠 엔진 개발
  */
 
-import type { StageConfig, StageRange, Grid, SolutionGrid } from '@/types/game';
+import type { StageConfig, StageRange, Grid, SolutionGrid, LockedCell } from '@/types/game';
 import { STAGE_RANGES } from '@/types/game';
 import { generateSolution } from '@/lib/sudoku/generator';
 import { createPuzzleFromSolution } from '@/lib/sudoku/solver';
+import { placeLocks } from '@/lib/sudoku/lockSystem';
 
 // ─── 상수 ───────────────────────────────────────────
 
@@ -114,14 +115,16 @@ export interface PuzzleGenerationResult {
   solution: SolutionGrid;
   /** 적용된 스테이지 설정 */
   config: StageConfig;
+  /** 잠금 칸 목록 (Stage 11+ 에서만 존재) */
+  lockedCells: LockedCell[];
 }
 
 /**
  * 스테이지 번호에 맞는 퍼즐을 생성한다.
- * 유일해가 보장된 퍼즐을 반환한다.
+ * 유일해가 보장되고, 잠금 칸이 포함된 퍼즐을 반환한다.
  *
  * @param stage - 스테이지 번호 (1~50)
- * @returns 퍼즐, 정답, 스테이지 설정
+ * @returns 퍼즐, 정답, 스테이지 설정, 잠금 칸 목록
  *
  * @example
  * ```ts
@@ -129,6 +132,7 @@ export interface PuzzleGenerationResult {
  * console.log(result.config.emptyCells); // 44~49 범위
  * console.log(result.puzzle);            // 빈 칸이 포함된 Grid
  * console.log(result.solution);          // 완성된 SolutionGrid
+ * console.log(result.lockedCells);       // 잠금 칸 목록
  * ```
  */
 export const generatePuzzle = (stage: number): PuzzleGenerationResult => {
@@ -136,14 +140,27 @@ export const generatePuzzle = (stage: number): PuzzleGenerationResult => {
   const solution = generateSolution();
   const puzzle = createPuzzleFromSolution(solution, config.emptyCells);
 
-  // TODO: 잠금 칸 생성 로직 — feat/engine-lock-area, lock-number, lock-chain PR에서 구현 예정
-  // config.lockedCellCount > 0인 스테이지(11+)에서 잠금 칸을 배치하고
-  // 잠금 포함 상태에서도 풀이 가능성을 보장해야 함
+  // 잠금 칸 배치 (Stage 11+)
+  let lockedCells: LockedCell[] = [];
+  if (config.lockedCellCount > 0) {
+    const lockResult = placeLocks(
+      puzzle,
+      solution,
+      config.lockedCellCount,
+      config.allowedLockTypes,
+      {
+        allowComposite: config.allowedLockTypes.length > 3, // Stage 31+ (cell-fill 포함)
+        allowChain: config.allowChainLocks,
+      },
+    );
+    lockedCells = lockResult.lockedCells;
+  }
 
   return {
     puzzle,
     solution,
     config,
+    lockedCells,
   };
 };
 
