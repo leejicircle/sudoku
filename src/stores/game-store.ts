@@ -66,14 +66,16 @@ interface GameStoreState {
   // ── 게임 데이터 ──
   /** 현재 보드 */
   board: Board;
-  /** 정답 */
-  solution: SolutionGrid;
+  /** 정답 (게임 시작 전에는 null) */
+  solution: SolutionGrid | null;
   /** 현재 스테이지 */
   stage: number;
   /** 스테이지 설정 */
   config: StageConfig | null;
-  /** 남은 잠금 칸 목록 */
+  /** 남은 잠금 칸 목록 (게임 진행 중 해제되면 줄어듦) */
   lockedCells: LockedCell[];
+  /** 최초 잠금 칸 목록 (reset 시 복원용, 게임 중 변경되지 않음) */
+  initialLockedCells: LockedCell[];
 
   // ── UI 상태 ──
   /** 선택된 셀 */
@@ -138,14 +140,14 @@ export type GameStore = GameStoreState & GameStoreActions;
 // ─── 초기 상태 ──────────────────────────────────────
 
 const EMPTY_BOARD: Board = [];
-const EMPTY_SOLUTION: SolutionGrid = [] as unknown as SolutionGrid;
 
 const initialState: GameStoreState = {
   board: EMPTY_BOARD,
-  solution: EMPTY_SOLUTION,
+  solution: null,
   stage: 0,
   config: null,
   lockedCells: [],
+  initialLockedCells: [],
   selectedCell: null,
   isNoteMode: false,
   timer: 0,
@@ -197,13 +199,13 @@ const processUnlocks = (
     unlockable.map((lc) => posKey(lc.position.row, lc.position.col)),
   );
 
-  // 보드에서 isLocked 해제
+  // 보드에서 isLocked 해제 — 변경 대상 셀만 새 객체 생성
   const newBoard = board.map((row, r) =>
     row.map((cell, c): Cell => {
       if (unlockKeys.has(posKey(r, c))) {
         return { ...cell, notes: new Set(cell.notes), isLocked: false };
       }
-      return { ...cell, notes: new Set(cell.notes) };
+      return cell;
     }),
   );
 
@@ -258,7 +260,7 @@ export const deserializeHistory = (data: { board: SerializedCell[][]; lockedCell
 
 interface PersistedState {
   board: SerializedCell[][];
-  solution: SolutionGrid;
+  solution: SolutionGrid | null;
   stage: number;
   config: StageConfig | null;
   lockedCells: LockedCell[];
@@ -286,6 +288,7 @@ export const useGameStore = create<GameStore>()(
           stage,
           config: result.config,
           lockedCells: result.lockedCells,
+          initialLockedCells: result.lockedCells,
           selectedCell: null,
           isNoteMode: false,
           timer: 0,
@@ -298,13 +301,17 @@ export const useGameStore = create<GameStore>()(
 
       // ── reset ──
       reset: () => {
-        const { stage, config } = get();
+        const { stage, config, board: currentBoard, initialLockedCells } = get();
         if (!config || stage === 0) return;
 
-        // 초기 보드를 히스토리에서 복원하지 않고, 현재 보드의 given 셀만 유지
-        const currentBoard = get().board;
-        const resetBoard: Board = currentBoard.map((row) =>
-          row.map((cell): Cell => {
+        // initialLockedCells에서 잠금 위치 키 Set 생성
+        const lockedKeys = new Set(
+          initialLockedCells.map((lc) => posKey(lc.position.row, lc.position.col)),
+        );
+
+        // given 셀 유지, 나머지 초기화, 잠금은 최초 목록 기준으로 복원
+        const resetBoard: Board = currentBoard.map((row, r) =>
+          row.map((cell, c): Cell => {
             if (cell.isGiven) {
               return { ...cell, notes: new Set(), isError: false };
             }
@@ -313,32 +320,13 @@ export const useGameStore = create<GameStore>()(
               isGiven: false,
               notes: new Set(),
               isError: false,
-              isLocked: cell.isLocked, // 원래 잠금 상태는 유지하지 않고 재계산
+              isLocked: lockedKeys.has(posKey(r, c)),
             };
           }),
         );
 
-        // 잠금 칸은 initGame 시 원래 목록으로 복원
-        // 현재 config에서 재생성하면 랜덤이 달라지므로, 원래 보드의 given을 기반으로 재구성
-        // → 심플하게: initGame과 동일한 효과를 위해 원래 solution/puzzle에서 재생성
-        const result = get();
-        const originalLockedCells = result.lockedCells;
-
-        // 잠금 칸을 원래 목록으로 복원하고, 보드에서도 잠금 표시
-        const lockedKeys = new Set(
-          originalLockedCells.map((lc) => posKey(lc.position.row, lc.position.col)),
-        );
-
-        const finalBoard: Board = resetBoard.map((row, r) =>
-          row.map((cell, c): Cell => ({
-            ...cell,
-            notes: new Set(),
-            isLocked: lockedKeys.has(posKey(r, c)) ? true : cell.isLocked,
-          })),
-        );
-
         // given 셀만으로 이미 충족되는 잠금 조건을 재검사
-        const unlockResult = processUnlocks(finalBoard, originalLockedCells);
+        const unlockResult = processUnlocks(resetBoard, initialLockedCells);
 
         set({
           board: unlockResult.board,
@@ -355,7 +343,7 @@ export const useGameStore = create<GameStore>()(
       // ── setValue ──
       setValue: (row: number, col: number, digit: Digit) => {
         const { board, solution, lockedCells, history, isComplete } = get();
-        if (isComplete) return;
+        if (isComplete || !solution) return;
 
         const cell = board[row]?.[col];
         if (!cell || cell.isGiven || cell.isLocked) return;
@@ -363,7 +351,7 @@ export const useGameStore = create<GameStore>()(
         // 히스토리 저장
         const newHistory = pushHistory(history, board, lockedCells);
 
-        // 셀 값 설정 + 메모 초기화
+        // 셀 값 설정 + 메모 초기화 — 변경 대상 셀만 새 객체 생성
         const newBoard = board.map((r, ri) =>
           r.map((c, ci): Cell => {
             if (ri === row && ci === col) {
@@ -374,7 +362,7 @@ export const useGameStore = create<GameStore>()(
                 isError: false,
               };
             }
-            return { ...c, notes: new Set(c.notes) };
+            return c;
           }),
         );
 
@@ -407,13 +395,13 @@ export const useGameStore = create<GameStore>()(
         // 히스토리 저장
         const newHistory = pushHistory(history, board, lockedCells);
 
-        // 셀 값 삭제
+        // 셀 값 삭제 — 변경 대상 셀만 새 객체 생성
         const newBoard = board.map((r, ri) =>
           r.map((c, ci): Cell => {
             if (ri === row && ci === col) {
               return { ...c, value: null, notes: new Set<Digit>(), isError: false };
             }
-            return { ...c, notes: new Set(c.notes) };
+            return c;
           }),
         );
 
@@ -439,7 +427,7 @@ export const useGameStore = create<GameStore>()(
         // 히스토리 저장
         const newHistory = pushHistory(history, board, lockedCells);
 
-        // 메모 토글
+        // 메모 토글 — 변경 대상 셀만 새 객체 생성
         const newBoard = board.map((r, ri) =>
           r.map((c, ci): Cell => {
             if (ri === row && ci === col) {
@@ -451,7 +439,7 @@ export const useGameStore = create<GameStore>()(
               }
               return { ...c, notes: newNotes };
             }
-            return { ...c, notes: new Set(c.notes) };
+            return c;
           }),
         );
 

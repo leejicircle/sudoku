@@ -60,10 +60,11 @@ beforeEach(() => {
   // 스토어 초기화 (persist 상태 포함)
   useGameStore.setState({
     board: [],
-    solution: [] as unknown as SolutionGrid,
+    solution: null,
     stage: 0,
     config: null,
     lockedCells: [],
+    initialLockedCells: [],
     selectedCell: null,
     isNoteMode: false,
     timer: 0,
