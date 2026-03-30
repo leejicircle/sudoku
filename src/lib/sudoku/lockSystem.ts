@@ -1,13 +1,14 @@
 /**
- * 잠금 칸 시스템 — 영역 조건 + 숫자 조건
- * 특정 영역 완성 또는 숫자 완성 시 잠금 칸이 해제되는 시스템을 구현한다.
+ * 잠금 칸 시스템 — 영역 조건 + 숫자 조건 + 복합 조건 + 연쇄 잠금
+ * 특정 영역/숫자 완성 시 잠금 칸이 해제되는 시스템을 구현한다.
  *
  * @description
  * 1. 영역 조건: row-complete, col-complete, box-complete
  * 2. 숫자 조건: number-complete (특정 숫자 9개 모두 배치)
- * 3. 잠금 칸은 빈 칸 중에서 선택하여 조건을 부여
- * 4. 잠금 포함 상태에서도 퍼즐이 풀이 가능해야 함
- * 5. 순수 함수 — 사이드 이펙트 없음
+ * 3. 복합 조건: 하나의 잠금 칸에 2개 이상의 조건 (모두 충족 시 해제)
+ * 4. 연쇄 잠금: 셀 A 해제 시 연결된 셀 B도 함께 해제 (캐스케이드)
+ * 5. 잠금 포함 상태에서도 퍼즐이 풀이 가능해야 함
+ * 6. 순수 함수 — 사이드 이펙트 없음
  *
  * @see GitHub Issue #3 — Epic: 스도쿠 엔진 개발
  */
@@ -457,9 +458,361 @@ export const placeAreaLocks = (
   };
 };
 
+// ─── 복합 조건 생성 ──────────────────────────────────
+
+/**
+ * 특정 위치에 대해 복합 조건(최대 2개)을 생성한다.
+ * 서로 다른 유형(또는 같은 유형이라도 다른 target)의 조건 2개를 반환한다.
+ *
+ * 후보가 부족하면 1개만 반환할 수 있다 — 이는 의도적 동작이다.
+ * 허용 유형이 제한적이거나 영역에 빈 칸이 부족하면 2개 확보가 불가능하므로,
+ * 1개라도 유효한 조건을 반환하여 잠금 배치 자체는 진행되도록 한다.
+ *
+ * @param grid - 퍼즐 그리드
+ * @param pos - 잠금 칸 위치
+ * @param lockedKeys - 이미 잠긴 셀 키 Set
+ * @param allowedTypes - 허용된 조건 유형
+ * @param solution - 정답 그리드
+ * @returns 조건 배열 (1~2개) 또는 빈 배열 (후보 없음)
+ */
+export const generateCompositeConditions = (
+  grid: Grid,
+  pos: Position,
+  lockedKeys: Set<string>,
+  allowedTypes: LockConditionType[],
+  solution: SolutionGrid,
+): LockCondition[] => {
+  const allCandidates: LockCondition[] = [];
+
+  const updatedLockedKeys = new Set(lockedKeys);
+  updatedLockedKeys.add(posKey(pos.row, pos.col));
+
+  // 영역 조건 후보
+  const areaTypes = allowedTypes.filter(
+    (t): t is 'row-complete' | 'col-complete' | 'box-complete' => AREA_LOCK_TYPES.includes(t),
+  );
+
+  for (const type of areaTypes) {
+    let target: number;
+    switch (type) {
+      case 'row-complete': target = pos.row; break;
+      case 'col-complete': target = pos.col; break;
+      case 'box-complete': target = getBoxIndex(pos.row, pos.col); break;
+    }
+
+    const positions = getAreaPositions(type, target);
+    const emptyCount = countEmptyInArea(grid, positions, updatedLockedKeys);
+
+    if (emptyCount >= 1) {
+      allCandidates.push({
+        type,
+        target,
+        description: createConditionDescription(type, target),
+      });
+    }
+  }
+
+  // 숫자 조건 후보
+  if (allowedTypes.includes('number-complete') && solution) {
+    const numberCandidates = getNumberConditionCandidates(grid, updatedLockedKeys);
+    for (const d of numberCandidates) {
+      allCandidates.push({
+        type: 'number-complete',
+        target: d,
+        description: createConditionDescription('number-complete', d),
+      });
+    }
+  }
+
+  if (allCandidates.length === 0) return [];
+
+  // 셔플 후 서로 다른 유형 2개 선택
+  const shuffled = shuffle(allCandidates);
+  const selected: LockCondition[] = [shuffled[0]];
+
+  if (shuffled.length >= 2) {
+    // 첫 번째와 다른 유형의 조건 찾기
+    const different = shuffled.find((c) => c.type !== selected[0].type);
+    if (different) {
+      selected.push(different);
+    } else {
+      // 같은 유형이라도 target이 다르면 추가
+      const sameTypeDiffTarget = shuffled.find(
+        (c) => c !== selected[0] && c.target !== selected[0].target,
+      );
+      if (sameTypeDiffTarget) {
+        selected.push(sameTypeDiffTarget);
+      }
+    }
+  }
+
+  return selected;
+};
+
+// ─── 연쇄 잠금 설정 ──────────────────────────────────
+
+/**
+ * 잠금 셀들 사이에 연쇄 관계를 설정한다.
+ * chainCount개의 연쇄 링크를 생성하여 트리 구조를 만든다.
+ * 순환 참조를 방지한다.
+ *
+ * @param lockedCells - 기존 잠금 셀 목록 (수정하지 않음)
+ * @param chainCount - 생성할 연쇄 링크 수
+ * @returns 연쇄 관계가 설정된 새 잠금 셀 목록
+ */
+export const setupChainLinks = (
+  lockedCells: LockedCell[],
+  chainCount: number,
+): LockedCell[] => {
+  if (lockedCells.length < 2 || chainCount <= 0) {
+    return lockedCells.map((lc) => ({ ...lc }));
+  }
+
+  const result = lockedCells.map((lc) => ({
+    ...lc,
+    conditions: [...lc.conditions],
+    chainUnlocks: lc.chainUnlocks ? [...lc.chainUnlocks] : undefined,
+  }));
+
+  // 연쇄 대상이 될 수 있는 셀 (아직 다른 셀의 체인 타겟이 아닌 셀)
+  const chainTargetUsed = new Set<string>();
+  // 연쇄 소스가 될 수 있는 셀
+  const indices = Array.from({ length: result.length }, (_, i) => i);
+  const shuffledIndices = shuffle(indices);
+
+  let created = 0;
+
+  for (const sourceIdx of shuffledIndices) {
+    if (created >= chainCount) break;
+
+    const source = result[sourceIdx];
+    const sourceKey = posKey(source.position.row, source.position.col);
+
+    // 이미 체인 타겟인 셀은 소스가 될 수 없음 (단방향 트리 보장)
+    if (chainTargetUsed.has(sourceKey)) continue;
+
+    // 타겟 후보: 아직 체인 타겟이 아닌 다른 셀
+    for (let i = 0; i < result.length; i++) {
+      if (i === sourceIdx) continue;
+      if (created >= chainCount) break;
+
+      const target = result[i];
+      const targetKey = posKey(target.position.row, target.position.col);
+
+      if (chainTargetUsed.has(targetKey)) continue;
+      // 소스가 이미 타겟의 체인 대상이면 스킵 (역방향 방지)
+      if (target.chainUnlocks?.some(
+        (p) => posKey(p.row, p.col) === sourceKey,
+      )) continue;
+
+      // 연쇄 링크 생성
+      if (!source.chainUnlocks) {
+        source.chainUnlocks = [];
+      }
+      source.chainUnlocks.push({ ...target.position });
+      chainTargetUsed.add(targetKey);
+      created++;
+    }
+  }
+
+  return result;
+};
+
+// ─── 연쇄 해제 처리 ──────────────────────────────────
+
+/**
+ * 연쇄 잠금을 포함하여 해제 가능한 셀들을 찾는다.
+ * 1. 조건이 모두 충족된 셀을 찾는다.
+ * 2. 해제된 셀의 chainUnlocks 타겟도 해제 대상에 추가한다.
+ * 3. 캐스케이드를 재귀적으로 처리한다.
+ *
+ * @param grid - 현재 보드 상태
+ * @param lockedCells - 잠금 칸 목록
+ * @returns 해제 가능한 잠금 칸들 (조건 충족 + 연쇄 해제 포함)
+ */
+export const findUnlockableCellsWithChain = (
+  grid: Grid,
+  lockedCells: LockedCell[],
+): LockedCell[] => {
+  // 잠금 셀을 키로 빠르게 조회할 수 있는 맵
+  const cellMap = new Map<string, LockedCell>();
+  for (const lc of lockedCells) {
+    cellMap.set(posKey(lc.position.row, lc.position.col), lc);
+  }
+
+  const lockedKeys = new Set(cellMap.keys());
+
+  // 1단계: 조건 충족으로 직접 해제 가능한 셀
+  const directUnlockable = new Set<string>();
+  for (const lc of lockedCells) {
+    if (lc.conditions.every((cond) => isAreaConditionMet(grid, cond, lockedKeys))) {
+      directUnlockable.add(posKey(lc.position.row, lc.position.col));
+    }
+  }
+
+  // 2단계: 연쇄 캐스케이드 (BFS)
+  const allUnlockable = new Set(directUnlockable);
+  const queue = [...directUnlockable];
+
+  while (queue.length > 0) {
+    const key = queue.shift()!;
+    const cell = cellMap.get(key);
+    if (!cell?.chainUnlocks) continue;
+
+    for (const targetPos of cell.chainUnlocks) {
+      const targetKey = posKey(targetPos.row, targetPos.col);
+      if (allUnlockable.has(targetKey)) continue; // 이미 해제됨
+      if (!cellMap.has(targetKey)) continue; // 잠금 셀이 아님
+
+      allUnlockable.add(targetKey);
+      queue.push(targetKey);
+    }
+  }
+
+  // 결과 반환
+  return lockedCells.filter((lc) =>
+    allUnlockable.has(posKey(lc.position.row, lc.position.col)),
+  );
+};
+
+// ─── 통합 잠금 배치 ──────────────────────────────────
+
+/**
+ * 잠금 배치 옵션
+ */
+export interface LockPlacementOptions {
+  /** 복합 조건 허용 (하나의 잠금 칸에 2개 조건) */
+  allowComposite: boolean;
+  /** 연쇄 잠금 허용 */
+  allowChain: boolean;
+  /** 복합 조건 비율 (0.0~1.0, 기본 0.4) — 잠금 칸 중 복합 조건을 가질 비율 */
+  compositeRatio?: number;
+  /** 연쇄 링크 수 (기본: 잠금 칸 수의 30%) */
+  chainRatio?: number;
+}
+
+/**
+ * 퍼즐에 잠금 칸을 배치한다 (복합 조건 + 연쇄 잠금 지원).
+ * 잠금 포함 상태에서 풀이 가능성을 검증한다.
+ *
+ * @param puzzle - 원본 퍼즐 (빈 칸 포함)
+ * @param solution - 정답 그리드
+ * @param count - 배치할 잠금 칸 수
+ * @param allowedTypes - 허용된 조건 유형
+ * @param options - 복합/연쇄 옵션
+ * @returns 잠금 배치 결과
+ *
+ * @example
+ * ```ts
+ * // 단순 잠금 (Stage 11~20)
+ * placeLocks(puzzle, solution, 2, ['row-complete'], { allowComposite: false, allowChain: false });
+ *
+ * // 복합 조건 (Stage 31~40)
+ * placeLocks(puzzle, solution, 6, allTypes, { allowComposite: true, allowChain: false });
+ *
+ * // 연쇄 잠금 (Stage 41~50)
+ * placeLocks(puzzle, solution, 10, allTypes, { allowComposite: true, allowChain: true });
+ * ```
+ */
+export const placeLocks = (
+  puzzle: Grid,
+  solution: SolutionGrid,
+  count: number,
+  allowedTypes: LockConditionType[],
+  options: LockPlacementOptions = { allowComposite: false, allowChain: false },
+): LockPlacementResult => {
+  if (count <= 0) {
+    return { lockedCells: [], puzzle: cloneGrid(puzzle) };
+  }
+
+  const compositeRatio = options.compositeRatio ?? 0.4;
+  const chainRatio = options.chainRatio ?? 0.3;
+
+  // 빈 칸 위치 수집 + 셔플
+  const emptyPositions: Position[] = [];
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      if (puzzle[r][c] === null) {
+        emptyPositions.push({ row: r, col: c });
+      }
+    }
+  }
+  const shuffled = shuffle(emptyPositions);
+
+  const lockedCells: LockedCell[] = [];
+  const lockedKeys = new Set<string>();
+  const workingPuzzle = cloneGrid(puzzle);
+
+  // 복합 조건 대상 수 결정
+  const compositeCount = options.allowComposite
+    ? Math.round(count * compositeRatio)
+    : 0;
+
+  for (const pos of shuffled) {
+    if (lockedCells.length >= count) break;
+
+    const isComposite = options.allowComposite
+      && lockedCells.length < compositeCount;
+
+    let conditions: LockCondition[];
+
+    if (isComposite) {
+      conditions = generateCompositeConditions(
+        workingPuzzle, pos, lockedKeys, allowedTypes, solution,
+      );
+    } else {
+      const condition = generateCondition(
+        workingPuzzle, pos, lockedKeys, allowedTypes, solution,
+      );
+      conditions = condition ? [condition] : [];
+    }
+
+    if (conditions.length === 0) continue;
+
+    // 검증: 잠금 포함 상태에서 풀이 가능한지
+    const candidateLocks = [...lockedCells, { position: pos, conditions }];
+    if (validateSolvabilityWithLocks(workingPuzzle, solution, candidateLocks)) {
+      lockedKeys.add(posKey(pos.row, pos.col));
+      lockedCells.push({ position: pos, conditions });
+    }
+  }
+
+  // 배치 부족 경고
+  if (lockedCells.length < count && process.env.NODE_ENV !== 'production') {
+    console.warn(
+      `[lockSystem] 잠금 칸 배치 부족: 요청 ${count}개, 실제 ${lockedCells.length}개. ` +
+      `빈 칸 부족 또는 풀이 검증 실패가 원인일 수 있습니다.`,
+    );
+  }
+
+  // 연쇄 잠금 설정 (잠금 수가 3개 이상일 때만 — 2개 이하에서는 체인 밀도가 과도)
+  let finalLockedCells = lockedCells;
+  if (options.allowChain && lockedCells.length >= 3) {
+    const chainCount = Math.max(1, Math.round(lockedCells.length * chainRatio));
+    finalLockedCells = setupChainLinks(lockedCells, chainCount);
+  }
+
+  // 최종 통합 검증: 개별 검증을 통과했더라도 전체 조합이 유효한지 확인
+  if (finalLockedCells.length > 0) {
+    if (!validateSolvabilityWithLocks(workingPuzzle, solution, finalLockedCells)) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[lockSystem] 최종 통합 검증 실패 — 체인 없이 재시도합니다.');
+      }
+      // 체인 제거 후 개별 검증 통과한 원본으로 fallback
+      finalLockedCells = lockedCells;
+    }
+  }
+
+  return {
+    lockedCells: finalLockedCells,
+    puzzle: workingPuzzle,
+  };
+};
+
 /**
  * @internal 테스트 전용 export — 외부에서 직접 사용 금지
- * countDigitPlacements, isNumberConditionMet, generateNumberCondition은
+ * countDigitPlacements, isNumberConditionMet, generateNumberCondition,
+ * generateCompositeConditions, setupChainLinks, findUnlockableCellsWithChain은
  * 이미 export const로 선언되어 있으므로 여기에 중복하지 않음.
  */
 export {
@@ -469,5 +822,6 @@ export {
   getAreaPositions,
   countEmptyInArea,
   createConditionDescription,
+  getNumberConditionCandidates,
   AREA_LOCK_TYPES,
 };
