@@ -23,6 +23,9 @@ const cloneGrid = (grid: Grid): Grid =>
 
 /**
  * 특정 위치에 숫자를 놓을 수 있는지 검사한다. (Grid 타입용)
+ *
+ * @todo generator.ts의 canPlace와 로직 중복 — 추후 공통 유틸로 통합 예정
+ *       (현재는 Grid(CellValue[][]) vs number[][] 타입 차이로 분리)
  */
 const canPlaceInGrid = (
   grid: Grid,
@@ -78,7 +81,7 @@ const findMostConstrainedCell = (
 
   for (let row = 0; row < BOARD_SIZE; row++) {
     for (let col = 0; col < BOARD_SIZE; col++) {
-      if (grid[row][col] !== null && grid[row][col] !== 0) continue;
+      if (grid[row][col] !== null) continue;
 
       const candidates = getCandidates(grid, row, col);
 
@@ -99,6 +102,57 @@ const findMostConstrainedCell = (
   if (bestRow === -1) return null; // 빈 셀 없음 → 완성
 
   return [bestRow, bestCol, bestCandidates];
+};
+
+// ─── 사전 검증 ──────────────────────────────────────
+
+/**
+ * 그리드에 이미 존재하는 값들 사이에 모순이 있는지 검사한다.
+ * 행/열/3×3 박스에 같은 숫자가 중복되면 즉시 false 반환.
+ * 백트래킹 전에 호출하여 명백한 모순을 빠르게 걸러낸다.
+ *
+ * @param grid - 검사할 그리드
+ * @returns 모순이 없으면 true, 있으면 false
+ */
+const hasNoConflicts = (grid: Grid): boolean => {
+  // 행 검사
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    const seen = new Set<number>();
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const val = grid[r][c];
+      if (val === null) continue;
+      if (seen.has(val)) return false;
+      seen.add(val);
+    }
+  }
+
+  // 열 검사
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    const seen = new Set<number>();
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      const val = grid[r][c];
+      if (val === null) continue;
+      if (seen.has(val)) return false;
+      seen.add(val);
+    }
+  }
+
+  // 3×3 박스 검사
+  for (let boxRow = 0; boxRow < BOARD_SIZE; boxRow += BOX_SIZE) {
+    for (let boxCol = 0; boxCol < BOARD_SIZE; boxCol += BOX_SIZE) {
+      const seen = new Set<number>();
+      for (let r = boxRow; r < boxRow + BOX_SIZE; r++) {
+        for (let c = boxCol; c < boxCol + BOX_SIZE; c++) {
+          const val = grid[r][c];
+          if (val === null) continue;
+          if (seen.has(val)) return false;
+          seen.add(val);
+        }
+      }
+    }
+  }
+
+  return true;
 };
 
 // ─── 풀이 함수 ──────────────────────────────────────
@@ -142,6 +196,12 @@ const solveBacktrack = (grid: Grid): boolean => {
  */
 export const solve = (puzzle: Grid): SolveResult => {
   const grid = cloneGrid(puzzle);
+
+  // 사전 모순 검출: 기존 값끼리 충돌하면 즉시 실패
+  if (!hasNoConflicts(grid)) {
+    return { solved: false, grid, solutionCount: 0 };
+  }
+
   const solved = solveBacktrack(grid);
 
   if (solved) {
@@ -209,8 +269,11 @@ const countSolutions = (
  */
 export const hasUniqueSolution = (puzzle: Grid): boolean => {
   const grid = cloneGrid(puzzle);
-  const count = { value: 0 };
 
+  // 사전 모순 검출
+  if (!hasNoConflicts(grid)) return false;
+
+  const count = { value: 0 };
   countSolutions(grid, count, 2);
 
   return count.value === 1;
@@ -225,8 +288,11 @@ export const hasUniqueSolution = (puzzle: Grid): boolean => {
  */
 export const countPuzzleSolutions = (puzzle: Grid, maxCount: number = 2): number => {
   const grid = cloneGrid(puzzle);
-  const count = { value: 0 };
 
+  // 사전 모순 검출
+  if (!hasNoConflicts(grid)) return 0;
+
+  const count = { value: 0 };
   countSolutions(grid, count, maxCount);
 
   return count.value;
@@ -290,4 +356,4 @@ export const createPuzzleFromSolution = (
 /**
  * @internal 테스트 전용 export — 외부에서 직접 사용 금지
  */
-export { cloneGrid, canPlaceInGrid, getCandidates, findMostConstrainedCell, countSolutions };
+export { cloneGrid, canPlaceInGrid, getCandidates, findMostConstrainedCell, countSolutions, hasNoConflicts };
