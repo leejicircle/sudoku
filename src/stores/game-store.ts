@@ -264,6 +264,7 @@ interface PersistedState {
   stage: number;
   config: StageConfig | null;
   lockedCells: LockedCell[];
+  initialLockedCells: LockedCell[];
   timer: number;
   history: { board: SerializedCell[][]; lockedCells: LockedCell[] }[];
   isStarted: boolean;
@@ -507,6 +508,7 @@ export const useGameStore = create<GameStore>()(
         stage: state.stage,
         config: state.config,
         lockedCells: state.lockedCells,
+        initialLockedCells: state.initialLockedCells,
         timer: state.timer,
         history: serializeHistory(state.history),
         isStarted: state.isStarted,
@@ -527,6 +529,7 @@ export const useGameStore = create<GameStore>()(
           stage: data.stage,
           config: data.config,
           lockedCells: data.lockedCells,
+          initialLockedCells: data.initialLockedCells || data.lockedCells,
           timer: data.timer,
           history: deserializeHistory(data.history || []),
           isStarted: data.isStarted,
