@@ -90,12 +90,13 @@ export const findAllConflicts = (board: Board): Set<string> => {
 export const updateBoardErrors = (board: Board): Board => {
   const conflicts = findAllConflicts(board);
 
+  // isError가 실제로 변경되는 셀만 새 객체 생성 — 셀 참조 유지로 React memo 최적화 가능
   return board.map((row, r) =>
-    row.map((cell, c): Cell => ({
-      ...cell,
-      notes: new Set(cell.notes),
-      isError: conflicts.has(posKey(r, c)),
-    })),
+    row.map((cell, c): Cell => {
+      const shouldError = conflicts.has(posKey(r, c));
+      if (cell.isError === shouldError) return cell;
+      return { ...cell, notes: new Set(cell.notes), isError: shouldError };
+    }),
   );
 };
 
