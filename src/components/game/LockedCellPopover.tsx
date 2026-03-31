@@ -41,7 +41,7 @@ const LockedCellPopover = ({
 }: LockedCellPopoverProps) => {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger render={(props) => <div {...props}>{children}</div>} />
+      <PopoverTrigger render={(props) => <div {...props} style={{ display: "contents" }}>{children}</div>} />
 
       <PopoverContent
         side="top"
@@ -63,9 +63,10 @@ const LockedCellPopover = ({
 
         {/* 해금 조건 목록 */}
         <div className="mt-3 flex flex-col gap-1.5">
-          {conditions.map((condition, idx) => (
+          {/* TODO: LockCondition에 진행률 데이터 추가 시 진행 상태(예: "3/9 완료") 표시 */}
+          {conditions.map((condition) => (
             <div
-              key={idx}
+              key={`${condition.type}-${condition.target}`}
               className="flex items-center gap-2 rounded-[var(--radius-md)] bg-muted px-3 py-2.5"
             >
               <ClipboardCheck className="size-3.5 shrink-0 text-muted-foreground" />
