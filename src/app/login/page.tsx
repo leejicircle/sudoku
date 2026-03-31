@@ -2,9 +2,9 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { Grid3X3, AlertCircle, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Grid3X3, AlertCircle } from "lucide-react";
 import OAuthButton from "@/components/auth/oauth-button";
+import { AppLayout } from "@/components/layout";
 
 /** Auth.js 에러 코드 → 사용자 친화적 메시지 */
 const errorMessages: Record<string, string> = {
@@ -26,24 +26,9 @@ const LoginContent = () => {
     : null;
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      {/* Header (56px) */}
-      <header className="flex h-14 shrink-0 items-center px-4">
-        <Link
-          href="/"
-          className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          aria-label="홈으로 돌아가기"
-        >
-          <ArrowLeft className="size-5" />
-          <span className="sr-only">뒤로</span>
-        </Link>
-        <h1 className="flex-1 text-center text-sm font-medium">로그인</h1>
-        {/* 좌측 아이콘과 대칭을 위한 빈 공간 */}
-        <div className="size-5" />
-      </header>
-
+    <AppLayout headerVariant="login">
       {/* 메인 콘텐츠 — 2컬럼 반응형 */}
-      <main className="flex flex-1 items-center justify-center px-6 py-10 lg:gap-16">
+      <div className="flex flex-1 items-center justify-center px-6 py-10 lg:gap-16">
         {/* 좌측 일러스트 영역 (≥1024px만 표시) */}
         <div className="hidden lg:flex lg:flex-col lg:items-center lg:gap-6">
           <div className="flex size-32 items-center justify-center rounded-2xl bg-sudoku-primary/10">
@@ -110,8 +95,8 @@ const LoginContent = () => {
             게임은 로그인 없이도 즐길 수 있어요
           </p>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 };
 
