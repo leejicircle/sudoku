@@ -40,11 +40,11 @@ const Board = () => {
     ? board[selectedCell.row]?.[selectedCell.col]?.value
     : null;
 
-  // ── 셀 선택 핸들러 ──
+  // ── 셀 선택 핸들러 (row/col 개별 전달로 Cell memo 최적화) ──
   const handleCellSelect = useCallback(
-    (position: Position) => {
+    (row: number, col: number) => {
       if (isComplete || isPaused) return;
-      selectCell(position);
+      selectCell({ row, col });
     },
     [selectCell, isComplete, isPaused],
   );
@@ -133,11 +133,12 @@ const Board = () => {
       {board.map((row, rowIdx) => (
         <div key={rowIdx} role="row" className="flex">
           {row.map((cell, colIdx) => {
-            const position: Position = { row: rowIdx, col: colIdx };
             const isSelected =
               selectedCell?.row === rowIdx && selectedCell?.col === colIdx;
             const isHighlighted =
-              !isSelected && !!selectedCell && isRelated(selectedCell, position);
+              !isSelected &&
+              !!selectedCell &&
+              isRelated(selectedCell, { row: rowIdx, col: colIdx });
             const isSameNumber =
               !isSelected &&
               !!selectedValue &&
@@ -148,7 +149,8 @@ const Board = () => {
               <Cell
                 key={`${rowIdx}-${colIdx}`}
                 cell={cell}
-                position={position}
+                row={rowIdx}
+                col={colIdx}
                 isSelected={isSelected}
                 isHighlighted={isHighlighted}
                 isSameNumber={isSameNumber}

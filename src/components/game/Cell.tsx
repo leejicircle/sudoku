@@ -3,7 +3,7 @@
 import { memo, useCallback, useMemo } from "react";
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Cell as CellType, Digit, Position } from "@/types/game";
+import type { Cell as CellType, Digit } from "@/types/game";
 
 // ────────────────────────────────────────
 // Types
@@ -12,8 +12,10 @@ import type { Cell as CellType, Digit, Position } from "@/types/game";
 interface CellProps {
   /** 셀 데이터 */
   cell: CellType;
-  /** 셀 위치 */
-  position: Position;
+  /** 행 인덱스 */
+  row: number;
+  /** 열 인덱스 */
+  col: number;
   /** 현재 선택된 셀인지 */
   isSelected: boolean;
   /** 같은 행/열/박스 하이라이트 */
@@ -21,7 +23,7 @@ interface CellProps {
   /** 선택된 셀과 같은 숫자 */
   isSameNumber: boolean;
   /** 셀 클릭 핸들러 */
-  onSelect: (position: Position) => void;
+  onSelect: (row: number, col: number) => void;
 }
 
 // ────────────────────────────────────────
@@ -55,17 +57,16 @@ MemoGrid.displayName = "MemoGrid";
 const Cell = memo(
   ({
     cell,
-    position,
+    row,
+    col,
     isSelected,
     isHighlighted,
     isSameNumber,
     onSelect,
   }: CellProps) => {
-    const { row, col } = position;
-
     const handleClick = useCallback(() => {
-      onSelect(position);
-    }, [onSelect, position]);
+      onSelect(row, col);
+    }, [onSelect, row, col]);
 
     // ── 배경색 결정 (우선순위 기반) ──
     const bgClass = useMemo(() => {
@@ -127,10 +128,13 @@ const Cell = memo(
     const renderContent = () => {
       if (cell.isLocked) {
         return (
-          <Lock
-            className="size-4 text-cell-locked-foreground"
-            aria-hidden="true"
-          />
+          <div className="flex flex-col items-center gap-0.5">
+            <Lock
+              className="size-5 text-cell-locked-foreground"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            />
+          </div>
         );
       }
 
@@ -179,8 +183,8 @@ const Cell = memo(
           "transition-[background-color,box-shadow] duration-(--duration-fast) ease-out",
           /* 커서 */
           cell.isLocked ? "cursor-not-allowed" : cell.isGiven ? "cursor-default" : "cursor-pointer",
-          /* 잠금 투명도 */
-          cell.isLocked && "opacity-60",
+          /* 잠금 셀 */
+          cell.isLocked && "opacity-80",
         )}
       >
         {renderContent()}
