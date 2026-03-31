@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGameStore } from "@/stores/game-store";
-import type { Digit, Position } from "@/types/game";
+import type { Digit, LockCondition, Position } from "@/types/game";
 import Cell from "./Cell";
+import LockedCellPopover from "./LockedCellPopover";
 
 // ────────────────────────────────────────
 // Helpers
@@ -34,6 +35,23 @@ const Board = () => {
   const setValue = useGameStore((s) => s.setValue);
   const clearValue = useGameStore((s) => s.clearValue);
   const toggleNote = useGameStore((s) => s.toggleNote);
+  const lockedCells = useGameStore((s) => s.lockedCells);
+
+  // ── 잠금 셀 팝오버 상태 ──
+  const [lockedPopoverCell, setLockedPopoverCell] = useState<Position | null>(null);
+  const boardDataRef = useRef(board);
+  useEffect(() => {
+    boardDataRef.current = board;
+  }, [board]);
+
+  // 잠금 셀별 조건 맵 (키: "row-col")
+  const lockedConditionsMap = useMemo(() => {
+    const map = new Map<string, LockCondition[]>();
+    for (const lc of lockedCells) {
+      map.set(`${lc.position.row}-${lc.position.col}`, lc.conditions);
+    }
+    return map;
+  }, [lockedCells]);
 
   // 선택된 셀의 값 (같은 숫자 하이라이트용)
   const selectedValue = selectedCell
@@ -45,6 +63,16 @@ const Board = () => {
     (row: number, col: number) => {
       if (isComplete || isPaused) return;
       selectCell({ row, col });
+
+      // 잠금 셀 팝오버 토글
+      const cell = boardDataRef.current[row]?.[col];
+      if (cell?.isLocked) {
+        setLockedPopoverCell((prev) =>
+          prev && prev.row === row && prev.col === col ? null : { row, col },
+        );
+      } else {
+        setLockedPopoverCell(null);
+      }
     },
     [selectCell, isComplete, isPaused],
   );
@@ -105,6 +133,7 @@ const Board = () => {
 
       e.preventDefault();
       selectCell({ row: newRow, col: newCol });
+      setLockedPopoverCell(null);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -145,9 +174,42 @@ const Board = () => {
               !!cell.value &&
               cell.value === selectedValue;
 
+            const cellKey = `${rowIdx}-${colIdx}`;
+
+            if (cell.isLocked) {
+              const isPopoverOpen = !!(
+                !isPaused &&
+                !isComplete &&
+                lockedPopoverCell &&
+                lockedPopoverCell.row === rowIdx &&
+                lockedPopoverCell.col === colIdx
+              );
+
+              return (
+                <LockedCellPopover
+                  key={cellKey}
+                  conditions={lockedConditionsMap.get(cellKey) ?? []}
+                  open={isPopoverOpen}
+                  onOpenChange={(open) => {
+                    if (!open) setLockedPopoverCell(null);
+                  }}
+                >
+                  <Cell
+                    cell={cell}
+                    row={rowIdx}
+                    col={colIdx}
+                    isSelected={isSelected}
+                    isHighlighted={isHighlighted}
+                    isSameNumber={isSameNumber}
+                    onSelect={handleCellSelect}
+                  />
+                </LockedCellPopover>
+              );
+            }
+
             return (
               <Cell
-                key={`${rowIdx}-${colIdx}`}
+                key={cellKey}
                 cell={cell}
                 row={rowIdx}
                 col={colIdx}
