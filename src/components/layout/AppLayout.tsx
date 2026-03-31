@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Header, { type HeaderVariant } from "./Header";
 import BottomNav from "./BottomNav";
+import { BOTTOM_NAV_HIDDEN_PATHS } from "./nav-items";
 
 // ────────────────────────────────────────
 // Types
@@ -32,12 +33,12 @@ const inferVariant = (pathname: string): HeaderVariant => {
   return "home";
 };
 
-/** BottomNav가 표시되는 페이지인지 확인 */
+/** BottomNav가 표시되는 페이지인지 확인 — nav-items.ts의 HIDDEN_PATHS를 단일 진실 원천으로 사용 */
 const hasBottomNav = (pathname: string, forceHide?: boolean): boolean => {
   if (forceHide) return false;
-  if (pathname.startsWith("/game")) return false;
-  if (pathname.startsWith("/login")) return false;
-  return true;
+  return !BOTTOM_NAV_HIDDEN_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
 };
 
 // ────────────────────────────────────────
@@ -75,7 +76,7 @@ const AppLayout = ({
         {children}
       </main>
 
-      <BottomNav />
+      {showNav && <BottomNav />}
     </div>
   );
 };

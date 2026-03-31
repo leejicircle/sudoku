@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Trophy } from "lucide-react";
-
-const navItems = [
-  { href: "/", label: "홈", icon: Home },
-  { href: "/ranking", label: "랭킹", icon: Trophy },
-] as const;
+import { navItems } from "./nav-items";
 
 /** 데스크톱 네비게이션 링크 (≥768px) — BottomNav 숨김 시 대체 */
 const DesktopNav = () => {

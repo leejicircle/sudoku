@@ -12,8 +12,13 @@ const AuthButton = () => {
     const img = session.user.image;
     const name = session.user.name ?? "";
 
+    // TODO: 추후 /mypage 또는 /profile 경로로 변경 예정 (v2 프로필 드롭다운)
     return (
-      <Link href="/login" className="flex size-11 items-center justify-center">
+      <Link
+        href="/login"
+        className="flex size-11 items-center justify-center"
+        aria-label={`${name || "사용자"} 프로필`}
+      >
         {img ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img

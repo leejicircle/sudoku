@@ -6,3 +6,5 @@ export { default as BackButton } from "./BackButton";
 export { default as AuthButton } from "./AuthButton";
 export { default as DesktopNav } from "./DesktopNav";
 export type { HeaderVariant } from "./Header";
+export { navItems, BOTTOM_NAV_HIDDEN_PATHS } from "./nav-items";
+export type { NavItem } from "./nav-items";

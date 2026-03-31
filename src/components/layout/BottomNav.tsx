@@ -2,19 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Trophy } from "lucide-react";
-
-// ────────────────────────────────────────
-// Config
-// ────────────────────────────────────────
-
-const navItems = [
-  { href: "/", label: "홈", icon: Home, ariaLabel: "홈으로 이동" },
-  { href: "/ranking", label: "랭킹", icon: Trophy, ariaLabel: "랭킹으로 이동" },
-] as const;
-
-/** BottomNav를 숨기는 경로 — 게임, 로그인 */
-const HIDDEN_PATHS = ["/game", "/login"];
+import { navItems } from "./nav-items";
 
 // ────────────────────────────────────────
 // Component
@@ -22,13 +10,6 @@ const HIDDEN_PATHS = ["/game", "/login"];
 
 const BottomNav = () => {
   const pathname = usePathname();
-
-  // 게임·로그인 페이지 또는 태블릿 이상(md)에서는 숨김
-  const isHidden = HIDDEN_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`),
-  );
-
-  if (isHidden) return null;
 
   return (
     <nav
