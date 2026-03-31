@@ -35,6 +35,18 @@ const LoginContent = () => {
     ? errorMessages[error] ?? errorMessages.Default
     : null;
 
+  // 로딩 중이거나 인증된 상태면 로그인 폼을 숨겨서 깜빡임 방지
+  if (isLoading || (isAuthenticated && !error)) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <Grid3X3
+          className="size-10 animate-pulse text-sudoku-primary"
+          strokeWidth={1.5}
+        />
+      </div>
+    );
+  }
+
   return (
     <AppLayout headerVariant="login">
       {/* 메인 콘텐츠 — 2컬럼 반응형 */}

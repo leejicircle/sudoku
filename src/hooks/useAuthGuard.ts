@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import useAuth from "./useAuth";
 
 // ────────────────────────────────────────
@@ -51,13 +51,17 @@ const useAuthGuard = (options: UseAuthGuardOptions = {}): UseAuthGuardReturn => 
   const { redirectTo = "/login", redirect = true } = options;
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && redirect) {
-      const callbackUrl = encodeURIComponent(window.location.pathname);
+      const search = searchParams.toString();
+      const currentUrl = search ? `${pathname}?${search}` : pathname;
+      const callbackUrl = encodeURIComponent(currentUrl);
       router.replace(`${redirectTo}?callbackUrl=${callbackUrl}`);
     }
-  }, [isLoading, isAuthenticated, redirect, redirectTo, router]);
+  }, [isLoading, isAuthenticated, redirect, redirectTo, router, pathname, searchParams]);
 
   return {
     isReady: !isLoading && isAuthenticated,

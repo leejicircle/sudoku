@@ -2,6 +2,7 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useCallback, useMemo } from "react";
+import { usePathname } from "next/navigation";
 
 // ────────────────────────────────────────
 // Types
@@ -57,6 +58,7 @@ export interface UseAuthReturn {
  */
 const useAuth = (): UseAuthReturn => {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
 
   const user = useMemo<AuthUser | null>(() => {
     if (status !== "authenticated" || !session?.user) return null;
@@ -74,8 +76,8 @@ const useAuth = (): UseAuthReturn => {
   const isLoading = status === "loading";
 
   const login = useCallback((callbackUrl?: string) => {
-    signIn(undefined, { callbackUrl: callbackUrl ?? window.location.href });
-  }, []);
+    signIn(undefined, { callbackUrl: callbackUrl ?? pathname });
+  }, [pathname]);
 
   const logout = useCallback(async (callbackUrl: string = "/") => {
     await signOut({ callbackUrl });
