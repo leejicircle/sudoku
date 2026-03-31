@@ -1,37 +1,69 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { User } from "lucide-react";
+import { User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 /** 로그인/프로필 아이콘 버튼 — 세션 상태에 따라 변형 */
 const AuthButton = () => {
-  const { data: session } = useSession();
+  const { user, isAuthenticated, logout } = useAuth();
 
-  if (session?.user) {
-    const img = session.user.image;
-    const name = session.user.name ?? "";
+  if (isAuthenticated && user) {
+    const name = user.nickname ?? user.name ?? "";
+    const displayName = name || "사용자";
 
-    // TODO: 추후 /mypage 또는 /profile 경로로 변경 예정 (v2 프로필 드롭다운)
     return (
-      <Link
-        href="/login"
-        className="flex size-11 items-center justify-center"
-        aria-label={`${name || "사용자"} 프로필`}
-      >
-        {img ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={img}
-            alt={name}
-            className="size-8 rounded-full border border-border object-cover"
-          />
-        ) : (
-          <span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-bold">
-            {name.charAt(0).toUpperCase()}
-          </span>
-        )}
-      </Link>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className="flex size-11 cursor-pointer items-center justify-center outline-none"
+          aria-label={`${displayName} 메뉴`}
+        >
+          {user.image ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={user.image}
+              alt={displayName}
+              className="size-8 rounded-full border border-border object-cover"
+            />
+          ) : (
+            <span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-bold">
+              {name.charAt(0).toUpperCase() || "U"}
+            </span>
+          )}
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end" sideOffset={4} className="w-48">
+          {/* 사용자 정보 */}
+          <div className="px-3 py-2.5">
+            <p className="truncate text-sm font-medium">{displayName}</p>
+            {user.email && (
+              <p className="truncate text-xs text-muted-foreground">
+                {user.email}
+              </p>
+            )}
+          </div>
+
+          <DropdownMenuSeparator />
+
+          {/* 로그아웃 */}
+          <DropdownMenuItem
+            onSelect={async () => {
+              await logout();
+            }}
+            className="cursor-pointer gap-2"
+          >
+            <LogOut className="size-4" />
+            로그아웃
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 

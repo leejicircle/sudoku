@@ -1,10 +1,11 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import { Grid3X3, AlertCircle } from "lucide-react";
 import OAuthButton from "@/components/auth/oauth-button";
 import { AppLayout } from "@/components/layout";
+import { useAuth } from "@/hooks";
 
 /** Auth.js 에러 코드 → 사용자 친화적 메시지 */
 const errorMessages: Record<string, string> = {
@@ -18,12 +19,33 @@ const errorMessages: Record<string, string> = {
 
 const LoginContent = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
   const error = searchParams.get("error");
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+
+  // 이미 로그인된 상태면 callbackUrl 또는 홈으로 리다이렉트
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && !error) {
+      router.replace(callbackUrl);
+    }
+  }, [isLoading, isAuthenticated, error, callbackUrl, router]);
 
   const errorMessage = error
     ? errorMessages[error] ?? errorMessages.Default
     : null;
+
+  // 로딩 중이거나 인증된 상태면 로그인 폼을 숨겨서 깜빡임 방지
+  if (isLoading || (isAuthenticated && !error)) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <Grid3X3
+          className="size-10 animate-pulse text-sudoku-primary"
+          strokeWidth={1.5}
+        />
+      </div>
+    );
+  }
 
   return (
     <AppLayout headerVariant="login">
