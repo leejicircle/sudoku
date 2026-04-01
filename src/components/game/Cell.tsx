@@ -39,7 +39,7 @@ const MemoGrid = memo(({ notes }: { notes: Set<Digit> }) => (
         key={digit}
         className={cn(
           "flex items-center justify-center",
-          "text-[length:var(--text-cell-memo)] font-mono font-normal leading-none",
+          "text-(length:--text-cell-memo) font-mono font-normal leading-none",
           notes.has(digit) ? "text-muted-foreground" : "text-transparent",
         )}
       >
@@ -93,16 +93,16 @@ const Cell = memo(
 
       // 우측 보더: 3열, 6열 뒤에 두꺼운 선
       if (col === 2 || col === 5) {
-        classes.push("border-r-[length:var(--board-gap-thick)] border-r-board-border");
+        classes.push("border-r-(length:--board-gap-thick) border-r-board-border");
       } else if (col < 8) {
-        classes.push("border-r-[length:var(--board-gap-thin)] border-r-board-border-thin");
+        classes.push("border-r-(length:--board-gap-thin) border-r-board-border-thin");
       }
 
       // 하단 보더: 3행, 6행 뒤에 두꺼운 선
       if (row === 2 || row === 5) {
-        classes.push("border-b-[length:var(--board-gap-thick)] border-b-board-border");
+        classes.push("border-b-(length:--board-gap-thick) border-b-board-border");
       } else if (row < 8) {
-        classes.push("border-b-[length:var(--board-gap-thin)] border-b-board-border-thin");
+        classes.push("border-b-(length:--board-gap-thin) border-b-board-border-thin");
       }
 
       return classes.join(" ");
@@ -142,7 +142,7 @@ const Cell = memo(
         return (
           <span
             className={cn(
-              "font-mono text-[length:var(--text-cell)] leading-none",
+              "font-mono text-(length:--text-cell) leading-none",
               "select-none",
               textClass,
               isSameNumber && !isSelected && "font-bold",

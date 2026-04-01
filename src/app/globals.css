@@ -184,6 +184,12 @@
   --numpad-button-size: 48px;
   --memo-cell-size: 12px;
 
+  /* ── 🖌 타이포그래피 스케일 ── */
+  --text-cell: 24px;
+  --text-cell-given: 24px;
+  --text-cell-memo: 10px;
+  --text-numpad: 24px;
+
   /* ── 🖌 그림자 (Light) ── */
   --shadow-board: 0 2px 8px oklch(0 0 0 / 0.08), 0 0 0 3px oklch(0.25 0 0);
   --shadow-cell-selected: inset 0 0 0 2px oklch(0.55 0.18 250);

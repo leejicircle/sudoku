@@ -51,13 +51,13 @@ const LockedCellPopover = ({
         {/* 제목 행 */}
         <div className="flex items-center gap-2">
           <Lock className="size-[18px] shrink-0 text-muted-foreground" />
-          <p className="text-[length:var(--text-body)] font-semibold text-foreground">
+          <p className="text-(length:--text-body) font-semibold text-foreground">
             잠금된 칸입니다
           </p>
         </div>
 
         {/* 설명 */}
-        <p className="mt-2 text-[length:var(--text-caption)] text-muted-foreground">
+        <p className="mt-2 text-(length:--text-caption) text-muted-foreground">
           조건을 충족하면 해금됩니다.
         </p>
 
@@ -83,7 +83,7 @@ const LockedCellPopover = ({
           className={
             "mt-3 w-full rounded-[var(--radius-md)] " +
             "bg-secondary px-4 py-2 " +
-            "text-[length:var(--text-caption)] font-medium text-secondary-foreground " +
+            "text-(length:--text-caption) font-medium text-secondary-foreground " +
             "transition-colors duration-(--duration-fast) " +
             "hover:bg-secondary/80 " +
             "cursor-pointer"

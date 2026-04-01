@@ -150,7 +150,7 @@ const Board = () => {
       aria-label="스도쿠 보드"
       className={
         /* 외곽선 + 배경 + 그림자 */
-        "border-[length:var(--board-border-width)] border-board-border " +
+        "border-(length:--board-border-width) border-board-border " +
         "bg-board-bg rounded-[var(--radius-lg)] " +
         "shadow-[var(--shadow-board)] " +
         /* 보드 크기: 셀 9개 + 간격 */
