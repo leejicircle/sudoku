@@ -28,23 +28,29 @@ const getHydrationServerSnapshot = () => false;
 
 /** 게임 로딩 중 표시되는 스켈레톤 */
 const GameSkeleton = () => (
-  <div className="flex flex-1 flex-col items-center px-4 py-4 gap-4 animate-pulse">
+  <div
+    className={
+      "flex flex-1 flex-col items-center px-[var(--board-padding)] py-4 gap-4 animate-pulse " +
+      "lg:flex-row lg:justify-center lg:items-start lg:gap-6 lg:py-8"
+    }
+  >
     {/* 보드 스켈레톤 */}
     <div
-      className="aspect-square w-full max-w-[376px] rounded-[var(--radius-lg)] bg-muted/40"
+      className="aspect-square w-full max-w-[calc(var(--cell-size)*9+16px)] rounded-[var(--radius-lg)] bg-muted/40 lg:shrink-0"
       aria-hidden="true"
     />
-    {/* 도구바 스켈레톤 */}
-    <div className="flex gap-2 w-full max-w-[376px]">
-      {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className="flex-1 h-12 rounded-[var(--radius-md)] bg-muted/30" />
-      ))}
-    </div>
-    {/* 숫자패드 스켈레톤 */}
-    <div className="grid grid-cols-5 gap-2 w-full max-w-[376px]">
-      {Array.from({ length: 10 }, (_, i) => (
-        <div key={i} className="h-12 rounded-[var(--radius-md)] bg-muted/30" />
-      ))}
+    {/* 도구바 + 숫자패드 스켈레톤 */}
+    <div className="w-full max-w-[calc(var(--cell-size)*9+16px)] flex flex-col gap-4 lg:w-auto lg:max-w-none">
+      <div className="flex gap-2 w-full">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="flex-1 h-12 rounded-[var(--radius-md)] bg-muted/30" />
+        ))}
+      </div>
+      <div className="grid grid-cols-5 gap-2 w-full">
+        {Array.from({ length: 10 }, (_, i) => (
+          <div key={i} className="h-12 rounded-[var(--radius-md)] bg-muted/30" />
+        ))}
+      </div>
     </div>
   </div>
 );
@@ -135,12 +141,29 @@ const GameContent = () => {
   // ── 게임 진행 중 ──
   return (
     <GameHeader>
-      <div className="flex flex-1 flex-col items-center px-[var(--board-padding)] py-4 gap-4">
+      <div
+        className={
+          "flex flex-1 flex-col items-center " +
+          "px-[var(--board-padding)] py-4 gap-4 " +
+          /* 데스크톱: 2컬럼 (보드 좌측 + 도구·패드 우측) */
+          "lg:flex-row lg:justify-center lg:items-start lg:gap-6 lg:py-8"
+        }
+      >
         {/* 보드 */}
-        <Board />
+        <div className="lg:shrink-0">
+          <Board />
+        </div>
 
-        {/* 도구바 + 숫자패드 (보드 최대 너비에 맞춤) */}
-        <div className="w-full max-w-[376px] flex flex-col gap-4">
+        {/* 도구바 + 숫자패드 */}
+        <div
+          className={
+            "w-full flex flex-col gap-4 " +
+            /* 모바일~태블릿: 보드 너비에 맞춤 (cell*9 + gap*6 + thick*2 + border*2) */
+            "max-w-[calc(var(--cell-size)*9+16px)] " +
+            /* 데스크톱: 우측 패널 (자연 너비로 축소) */
+            "lg:w-auto lg:max-w-none lg:pt-2"
+          }
+        >
           <Toolbar />
           <NumberPad />
         </div>

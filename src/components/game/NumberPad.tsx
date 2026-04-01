@@ -128,7 +128,7 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
 
   return (
     <div
-      className={`grid grid-cols-5 gap-[var(--numpad-gap)] pb-[calc(env(safe-area-inset-bottom)+16px)] ${className}`}
+      className={`grid grid-cols-5 gap-[var(--numpad-gap)] pb-[calc(env(safe-area-inset-bottom)+16px)] lg:pb-0 ${className}`}
       role="group"
       aria-label="숫자 입력 패드"
     >
