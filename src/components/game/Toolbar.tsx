@@ -41,8 +41,8 @@ const ToolButton = memo(
         (disabled
           ? "opacity-40 pointer-events-none text-muted-foreground "
           : active
-            ? "bg-sudoku-primary/10 text-sudoku-primary "
-            : "text-muted-foreground hover:bg-accent ")
+            ? "cursor-pointer bg-sudoku-primary/10 text-sudoku-primary "
+            : "cursor-pointer text-muted-foreground hover:bg-accent ")
       }
     >
       {icon}

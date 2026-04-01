@@ -105,13 +105,23 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
   );
 
   // ── 삭제 버튼 클릭 ──
-  // TODO: 메모만 있는 셀에서 삭제 시 clearNotes 액션 필요 (store 확장 후 대응)
+  const clearNotes = useGameStore((s) => s.clearNotes);
+
   const handleDelete = useCallback(() => {
     if (!selectedCell || !canInteract) return;
 
     triggerHaptic();
-    clearValue(selectedCell.row, selectedCell.col);
-  }, [selectedCell, canInteract, clearValue, triggerHaptic]);
+
+    const cell = board[selectedCell.row]?.[selectedCell.col];
+    if (!cell) return;
+
+    // 값이 있으면 값 삭제, 메모만 있으면 메모 삭제
+    if (cell.value !== null) {
+      clearValue(selectedCell.row, selectedCell.col);
+    } else if (cell.notes.size > 0) {
+      clearNotes(selectedCell.row, selectedCell.col);
+    }
+  }, [selectedCell, canInteract, board, clearValue, clearNotes, triggerHaptic]);
 
   // 보드가 비어있으면 렌더링하지 않음
   if (board.length === 0) return null;
@@ -147,7 +157,7 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
           "flex items-center justify-center " +
           "w-[var(--numpad-button-size)] h-[var(--numpad-button-size)] " +
           "rounded-[var(--radius-md)] " +
-          "bg-card shadow-[var(--shadow-numpad)] " +
+          "cursor-pointer bg-card shadow-[var(--shadow-numpad)] " +
           "text-muted-foreground " +
           "transition-colors duration-[var(--duration-fast)] " +
           "hover:bg-accent " +
@@ -197,7 +207,7 @@ const DigitButton = memo(({ digit, isComplete, disabled, onPress }: DigitButtonP
         "transition-colors duration-[var(--duration-fast)] " +
         (isComplete
           ? "opacity-30 bg-muted text-muted-foreground pointer-events-none "
-          : "bg-card text-foreground shadow-[var(--shadow-numpad)] " +
+          : "cursor-pointer bg-card text-foreground shadow-[var(--shadow-numpad)] " +
             "hover:bg-accent " +
             "active:animate-numpad-press active:bg-sudoku-primary active:text-sudoku-primary-foreground " +
             "disabled:opacity-40 disabled:pointer-events-none ")
