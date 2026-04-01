@@ -41,7 +41,7 @@ const LockedCellPopover = ({
 }: LockedCellPopoverProps) => {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger render={(props) => <div {...props} style={{ display: "contents" }}>{children}</div>} />
+      <PopoverTrigger nativeButton={false} render={(props) => <div {...props} style={{ display: "contents" }}>{children}</div>} />
 
       <PopoverContent
         side="top"
