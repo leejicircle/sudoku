@@ -11,22 +11,24 @@ import Timer from "./Timer";
 // 헬퍼
 // ────────────────────────────────────────
 
+/** 난이도 라벨 → Tailwind 색상 클래스 매핑 (모듈 상수) */
+const DIFFICULTY_COLOR_MAP: Record<string, string> = {
+  입문: "text-difficulty-easy",
+  초급: "text-difficulty-easy",
+  중급: "text-difficulty-medium",
+  고급: "text-difficulty-hard",
+  마스터: "text-difficulty-expert",
+};
+
 /** 스테이지 번호로 난이도 라벨 + 색상 클래스를 반환 */
 const getDifficultyInfo = (
   stage: number,
 ): { label: string; colorClass: string } => {
   for (const range of STAGE_RANGES) {
     if (stage >= range.startStage && stage <= range.endStage) {
-      const colorMap: Record<string, string> = {
-        입문: "text-difficulty-easy",
-        초급: "text-difficulty-easy",
-        중급: "text-difficulty-medium",
-        고급: "text-difficulty-hard",
-        마스터: "text-difficulty-expert",
-      };
       return {
         label: range.label,
-        colorClass: colorMap[range.label] ?? "text-muted-foreground",
+        colorClass: DIFFICULTY_COLOR_MAP[range.label] ?? "text-muted-foreground",
       };
     }
   }
@@ -75,7 +77,7 @@ const GameHeader = ({ children }: GameHeaderProps) => {
   // ── 중앙: 난이도 라벨 + 타이머 ──
   const centerSlot = isStarted ? (
     <div className="flex items-center gap-2">
-      <span className={`text-sm font-medium ${colorClass}`}>
+      <span className={`text-(length:--text-caption) font-medium ${colorClass}`}>
         {label}
       </span>
       <span className="text-muted-foreground" aria-hidden="true">·</span>
