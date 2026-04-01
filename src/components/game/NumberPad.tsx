@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { Delete } from "lucide-react";
 import { useGameStore } from "@/stores/game-store";
 import type { Digit } from "@/types/game";
@@ -62,13 +62,23 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
     return counts;
   }, [board]);
 
-  // ── 선택된 셀이 입력 가능한지 확인 ──
-  const canInput = useMemo(() => {
+  // ── 선택된 셀이 인터랙션 가능한지 (given/locked 제외) ──
+  const canInteract = useMemo(() => {
     if (!selectedCell || isComplete || isPaused) return false;
     const cell = board[selectedCell.row]?.[selectedCell.col];
     if (!cell) return false;
     return !cell.isGiven && !cell.isLocked;
   }, [board, selectedCell, isComplete, isPaused]);
+
+  // ── 숫자 입력 가능 여부 (메모 모드에서 값 있는 셀 제외) ──
+  const canInputDigit = useMemo(() => {
+    if (!canInteract || !selectedCell) return false;
+    if (isNoteMode) {
+      const cell = board[selectedCell.row]?.[selectedCell.col];
+      return cell?.value === null;
+    }
+    return true;
+  }, [canInteract, isNoteMode, board, selectedCell]);
 
   // ── 햅틱 피드백 ──
   const triggerHaptic = useCallback(() => {
@@ -80,7 +90,7 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
   // ── 숫자 버튼 클릭 ──
   const handleDigitPress = useCallback(
     (digit: Digit) => {
-      if (!selectedCell || !canInput) return;
+      if (!selectedCell || !canInputDigit) return;
 
       triggerHaptic();
 
@@ -91,16 +101,17 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
         setValue(row, col, digit);
       }
     },
-    [selectedCell, canInput, isNoteMode, setValue, toggleNote, triggerHaptic],
+    [selectedCell, canInputDigit, isNoteMode, setValue, toggleNote, triggerHaptic],
   );
 
   // ── 삭제 버튼 클릭 ──
+  // TODO: 메모만 있는 셀에서 삭제 시 clearNotes 액션 필요 (store 확장 후 대응)
   const handleDelete = useCallback(() => {
-    if (!selectedCell || !canInput) return;
+    if (!selectedCell || !canInteract) return;
 
     triggerHaptic();
     clearValue(selectedCell.row, selectedCell.col);
-  }, [selectedCell, canInput, clearValue, triggerHaptic]);
+  }, [selectedCell, canInteract, clearValue, triggerHaptic]);
 
   // 보드가 비어있으면 렌더링하지 않음
   if (board.length === 0) return null;
@@ -120,7 +131,7 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
             key={digit}
             digit={digit}
             isComplete={isDigitComplete}
-            disabled={!canInput || isDigitComplete}
+            disabled={!canInputDigit || isDigitComplete}
             onPress={handleDigitPress}
           />
         );
@@ -130,8 +141,8 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
       <button
         type="button"
         onClick={handleDelete}
-        disabled={!canInput}
-        aria-label="입력 삭제"
+        disabled={!canInteract}
+        aria-label="선택된 셀 값 지우기"
         className={
           "flex items-center justify-center " +
           "w-[var(--numpad-button-size)] h-[var(--numpad-button-size)] " +
@@ -166,7 +177,7 @@ interface DigitButtonProps {
  * - 완료 상태: opacity 0.3, muted 배경
  * - 활성 누름: scale 0.92→1 애니메이션 + primary 배경
  */
-const DigitButton = ({ digit, isComplete, disabled, onPress }: DigitButtonProps) => {
+const DigitButton = memo(({ digit, isComplete, disabled, onPress }: DigitButtonProps) => {
   const handleClick = useCallback(() => {
     onPress(digit);
   }, [digit, onPress]);
@@ -194,6 +205,7 @@ const DigitButton = ({ digit, isComplete, disabled, onPress }: DigitButtonProps)
       {digit}
     </button>
   );
-};
+});
+DigitButton.displayName = "DigitButton";
 
 export default NumberPad;
