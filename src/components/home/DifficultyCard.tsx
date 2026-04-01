@@ -95,6 +95,7 @@ const DifficultyCard = ({
   onPress,
 }: DifficultyCardProps) => {
   const handleClick = () => {
+    if (isLocked) return; // TODO: 잠금 팝오버 표시
     onPress(difficulty);
   };
 
@@ -108,7 +109,7 @@ const DifficultyCard = ({
           : `${difficulty.label} 난이도 게임 시작`
       }
       className={
-        "relative flex h-20 w-full items-center overflow-hidden " +
+        "relative flex h-20 md:h-[100px] w-full items-center overflow-hidden " +
         "rounded-[var(--radius-lg)] border border-border " +
         "pl-0 pr-4 " +
         "transition-all duration-(--duration-fast) " +
