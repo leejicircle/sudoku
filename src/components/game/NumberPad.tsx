@@ -193,13 +193,14 @@ const DigitButton = memo(({ digit, isComplete, disabled, onPress }: DigitButtonP
         "flex items-center justify-center " +
         "w-[var(--numpad-button-size)] h-[var(--numpad-button-size)] " +
         "rounded-[var(--radius-md)] " +
-        "font-mono text-[var(--text-numpad)] font-medium " +
+        "font-mono text-(length:--text-numpad) font-medium " +
         "transition-colors duration-[var(--duration-fast)] " +
         (isComplete
           ? "opacity-30 bg-muted text-muted-foreground pointer-events-none "
           : "bg-card text-foreground shadow-[var(--shadow-numpad)] " +
             "hover:bg-accent " +
-            "active:animate-numpad-press active:bg-sudoku-primary active:text-sudoku-primary-foreground ")
+            "active:animate-numpad-press active:bg-sudoku-primary active:text-sudoku-primary-foreground " +
+            "disabled:opacity-40 disabled:pointer-events-none ")
       }
     >
       {digit}
