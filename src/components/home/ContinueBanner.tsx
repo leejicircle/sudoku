@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { ClipboardList, ChevronRight } from "lucide-react";
 import { STAGE_RANGES } from "@/types/game";
@@ -30,17 +30,14 @@ const getDifficultyLabel = (stage: number): string => {
   return "알 수 없음";
 };
 
-/** localStorage에서 진행 중인 게임 정보를 직접 읽는다 (Zustand 하이드레이션 우회) */
-const readActiveGame = (): ActiveGameInfo | null => {
+/** JSON 문자열을 파싱하여 진행 중인 게임 정보를 추출 */
+const parseActiveGame = (raw: string | null): ActiveGameInfo | null => {
+  if (!raw) return null;
   try {
-    const stored = localStorage.getItem("sudoku-game");
-    if (!stored) return null;
-
-    const parsed = JSON.parse(stored);
+    const parsed = JSON.parse(raw);
     const state = parsed?.state;
     if (!state?.isStarted || state?.isComplete) return null;
 
-    // serialized board에서 진행률 계산
     const board = state.board as { value: number | null }[][];
     let filled = 0;
     let total = 0;
@@ -62,6 +59,30 @@ const readActiveGame = (): ActiveGameInfo | null => {
 };
 
 // ────────────────────────────────────────
+// useSyncExternalStore 구독 (localStorage)
+// ────────────────────────────────────────
+
+const STORAGE_KEY = "sudoku-game";
+
+/** storage 이벤트 구독 (다른 탭에서의 변경 감지) */
+const subscribe = (callback: () => void) => {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+};
+
+/** 클라이언트 스냅샷: localStorage에서 원시 JSON 문자열 반환 */
+const getSnapshot = (): string | null => {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+/** 서버 스냅샷: SSR에서는 null */
+const getServerSnapshot = (): null => null;
+
+// ────────────────────────────────────────
 // ContinueBanner 컴포넌트
 // ────────────────────────────────────────
 
@@ -71,18 +92,16 @@ const readActiveGame = (): ActiveGameInfo | null => {
  * 진행 중인 게임이 있을 때 난이도 카드 위에 표시.
  * 배너 전체가 클릭 가능하며, 진행 중인 게임으로 이동한다.
  *
- * localStorage에서 직접 읽어 Zustand persist 하이드레이션 타이밍에
- * 의존하지 않는다 (낙관적 읽기).
+ * useSyncExternalStore로 localStorage를 구독하여
+ * Zustand persist 하이드레이션에 의존하지 않는다.
  *
  * @see docs/design/home.md §4
  */
 const ContinueBanner = () => {
   const router = useRouter();
-  const [gameInfo, setGameInfo] = useState<ActiveGameInfo | null>(null);
 
-  useEffect(() => {
-    setGameInfo(readActiveGame());
-  }, []);
+  const rawData = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const gameInfo = useMemo(() => parseActiveGame(rawData), [rawData]);
 
   if (!gameInfo) return null;
 
