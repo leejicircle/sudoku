@@ -84,6 +84,10 @@ export interface GameCoreSlice {
   clearValue: (row: number, col: number) => void;
   /** 메모 숫자 토글 */
   toggleNote: (row: number, col: number, digit: Digit) => void;
+  /** 셀의 메모(notes) 전체 삭제 */
+  clearNotes: (row: number, col: number) => void;
+  /** 힌트 사용: 선택된 셀에 정답 자동 입력 */
+  useHint: () => void;
   /** 마지막 동작 되돌리기 */
   undo: () => void;
 }
