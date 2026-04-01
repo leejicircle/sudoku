@@ -18,9 +18,10 @@ import { useGameStore } from "@/stores/game-store";
  * @see docs/design/game.md §2.1 타이머 포맷
  */
 export const formatTime = (seconds: number): string => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
+  const safe = Math.max(0, seconds);
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
+  const s = safe % 60;
 
   const mm = String(m).padStart(2, "0");
   const ss = String(s).padStart(2, "0");
@@ -71,13 +72,15 @@ const Timer = ({ className = "" }: TimerProps) => {
     return () => clearInterval(intervalId);
   }, [isStarted, isPaused, isComplete, tick]);
 
+  const display = formatTime(timer);
+
   return (
     <time
-      aria-label={`경과 시간 ${formatTime(timer)}`}
+      aria-label={`경과 시간 ${display}`}
       aria-live="off"
       className={`font-mono text-(length:--text-timer) font-medium tabular-nums ${className}`}
     >
-      {formatTime(timer)}
+      {display}
     </time>
   );
 };
