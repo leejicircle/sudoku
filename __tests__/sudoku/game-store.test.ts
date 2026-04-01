@@ -72,6 +72,7 @@ beforeEach(() => {
     history: [],
     isStarted: false,
     isComplete: false,
+    hintsUsed: 0,
   });
 });
 

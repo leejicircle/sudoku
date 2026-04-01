@@ -280,6 +280,90 @@ export const createGameCoreSlice: SliceCreator<GameCoreSlice> = (set, get) => ({
     });
   },
 
+  // ── clearNotes ──
+  clearNotes: (row: number, col: number) => {
+    const { board, lockedCells, history, isComplete } = get();
+    if (isComplete) return;
+
+    const cell = board[row]?.[col];
+    if (!cell || cell.isGiven || cell.isLocked || cell.value !== null) return;
+    if (cell.notes.size === 0) return;
+
+    // 히스토리 저장
+    const newHistory = pushHistory(history, board, lockedCells);
+
+    // 메모 초기화 -- 변경 대상 셀만 새 객체 생성
+    const newBoard = board.map((r, ri) =>
+      r.map((c, ci): Cell => {
+        if (ri === row && ci === col) {
+          return { ...c, notes: new Set<Digit>() };
+        }
+        return c;
+      }),
+    );
+
+    set({
+      board: newBoard,
+      history: newHistory,
+    });
+  },
+
+  // ── useHint ──
+  useHint: () => {
+    const {
+      board, solution, lockedCells, history,
+      isComplete, isPaused, selectedCell, hintsUsed,
+    } = get();
+
+    // 가드: 힌트 사용 불가 조건
+    if (isComplete || isPaused || !solution || !selectedCell) return;
+    if (hintsUsed >= 3) return;
+
+    const { row, col } = selectedCell;
+    const cell = board[row]?.[col];
+    if (!cell || cell.isGiven || cell.isLocked) return;
+    if (cell.value !== null) return;
+
+    const answer = solution[row]?.[col];
+    if (!answer) return;
+
+    // 히스토리 저장
+    const newHistory = pushHistory(history, board, lockedCells);
+
+    // 정답 입력 + 메모 초기화
+    const newBoard = board.map((r, ri) =>
+      r.map((c, ci): Cell => {
+        if (ri === row && ci === col) {
+          return {
+            ...c,
+            value: answer,
+            notes: new Set<Digit>(),
+            isError: false,
+          };
+        }
+        return c;
+      }),
+    );
+
+    // 충돌 검증
+    const validatedBoard = updateBoardErrors(newBoard);
+
+    // 잠금 해제 검사
+    const unlockResult = processUnlocks(validatedBoard, lockedCells);
+
+    // 완료 검사
+    const complete = isGameComplete(unlockResult.board, solution);
+
+    set({
+      board: unlockResult.board,
+      lockedCells: unlockResult.lockedCells,
+      history: newHistory,
+      isComplete: complete,
+      isPaused: complete ? true : get().isPaused,
+      hintsUsed: hintsUsed + 1,
+    });
+  },
+
   // ── undo ──
   undo: () => {
     const { history, isComplete } = get();
