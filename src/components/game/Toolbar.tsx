@@ -77,19 +77,35 @@ const Toolbar = ({ className = "" }: ToolbarProps) => {
   const isComplete = useGameStore((s) => s.isComplete);
   const isPaused = useGameStore((s) => s.isPaused);
   const history = useGameStore((s) => s.history);
+  const hintsUsed = useGameStore((s) => s.hintsUsed);
   const undo = useGameStore((s) => s.undo);
   const clearValue = useGameStore((s) => s.clearValue);
+  const clearNotes = useGameStore((s) => s.clearNotes);
+  const useHint = useGameStore((s) => s.useHint);
   const toggleNoteMode = useGameStore((s) => s.toggleNoteMode);
+
+  /** 최대 힌트 횟수 */
+  const MAX_HINTS = 3;
+  const hintsRemaining = MAX_HINTS - hintsUsed;
 
   // ── 되돌리기 가능 여부 ──
   const canUndo = history.length > 0 && !isComplete && !isPaused;
 
-  // ── 지우기 가능 여부 ──
+  // ── 지우기 가능 여부 (값 또는 메모가 있는 경우) ──
   const canErase = useMemo(() => {
     if (!selectedCell || isComplete || isPaused) return false;
     const cell = board[selectedCell.row]?.[selectedCell.col];
-    return !!cell && !cell.isGiven && !cell.isLocked && cell.value !== null;
+    if (!cell || cell.isGiven || cell.isLocked) return false;
+    return cell.value !== null || cell.notes.size > 0;
   }, [selectedCell, board, isComplete, isPaused]);
+
+  // ── 힌트 사용 가능 여부 ──
+  const canHint = useMemo(() => {
+    if (!selectedCell || isComplete || isPaused || hintsUsed >= MAX_HINTS) return false;
+    const cell = board[selectedCell.row]?.[selectedCell.col];
+    if (!cell || cell.isGiven || cell.isLocked) return false;
+    return cell.value === null;
+  }, [selectedCell, board, isComplete, isPaused, hintsUsed]);
 
   // ── 핸들러 ──
   const handleUndo = useCallback(() => {
@@ -98,12 +114,24 @@ const Toolbar = ({ className = "" }: ToolbarProps) => {
 
   const handleErase = useCallback(() => {
     if (!selectedCell) return;
-    clearValue(selectedCell.row, selectedCell.col);
-  }, [selectedCell, clearValue]);
+    const cell = board[selectedCell.row]?.[selectedCell.col];
+    if (!cell) return;
+
+    // 값이 있으면 값 삭제, 메모만 있으면 메모 삭제
+    if (cell.value !== null) {
+      clearValue(selectedCell.row, selectedCell.col);
+    } else if (cell.notes.size > 0) {
+      clearNotes(selectedCell.row, selectedCell.col);
+    }
+  }, [selectedCell, board, clearValue, clearNotes]);
 
   const handleToggleMemo = useCallback(() => {
     toggleNoteMode();
   }, [toggleNoteMode]);
+
+  const handleHint = useCallback(() => {
+    useHint();
+  }, [useHint]);
 
   // 보드가 비어있으면 렌더링하지 않음
   if (board.length === 0) return null;
@@ -135,9 +163,9 @@ const Toolbar = ({ className = "" }: ToolbarProps) => {
       />
       <ToolButton
         icon={<Lightbulb size={20} />}
-        label="힌트(3)"
-        disabled={true} // TODO: 힌트 시스템 구현 후 활성화
-        onClick={() => {}} // TODO: 힌트 액션 연결
+        label={`힌트(${hintsRemaining})`}
+        disabled={!canHint}
+        onClick={handleHint}
       />
     </div>
   );
