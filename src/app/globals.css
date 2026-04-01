@@ -201,6 +201,7 @@
   --shadow-board: 0 2px 8px oklch(0 0 0 / 0.08), 0 0 0 3px oklch(0.25 0 0);
   --shadow-cell-selected: inset 0 0 0 2px oklch(0.55 0.18 250);
   --shadow-numpad: 0 2px 4px oklch(0 0 0 / 0.06);
+  --shadow-xl: 0 20px 25px oklch(0 0 0 / 0.10), 0 8px 10px oklch(0 0 0 / 0.04);
 
   /* ── 🖌 애니메이션 duration ── */
   --duration-fast: 100ms;
@@ -295,6 +296,7 @@
   --shadow-board: 0 2px 8px oklch(0 0 0 / 0.3), 0 0 0 3px oklch(0.80 0 0);
   --shadow-cell-selected: inset 0 0 0 2px oklch(0.68 0.16 250);
   --shadow-numpad: 0 2px 4px oklch(0 0 0 / 0.2);
+  --shadow-xl: 0 20px 25px oklch(0 0 0 / 0.30), 0 8px 10px oklch(0 0 0 / 0.15);
 }
 
 @layer base {
@@ -386,6 +388,51 @@
   100% {
     opacity: 0;
     transform: translateY(10px) scale(0.98);
+  }
+}
+
+/* ── 🖌 클리어 모달 키프레임 ── */
+
+@keyframes clear-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes star-scale-in {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-down-fade {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 

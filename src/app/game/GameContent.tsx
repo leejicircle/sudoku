@@ -10,6 +10,7 @@ import {
 } from "@/components/game";
 import Toolbar from "@/components/game/Toolbar";
 import PauseOverlay from "@/components/game/PauseOverlay";
+import ClearModal from "@/components/game/ClearModal";
 
 // ────────────────────────────────────────
 // Zustand persist 하이드레이션 구독
@@ -55,7 +56,7 @@ const GameSkeleton = () => (
 /**
  * 게임 플레이 페이지 콘텐츠 (클라이언트)
  *
- * 구성: GameHeader > (Board + Toolbar + NumberPad + PauseOverlay)
+ * 구성: GameHeader > (Board + Toolbar + NumberPad + PauseOverlay + ClearModal)
  *
  * ## 게임 초기화 흐름
  *
@@ -147,6 +148,9 @@ const GameContent = () => {
 
       {/* 일시정지 오버레이 */}
       <PauseOverlay />
+
+      {/* 클리어 결과 모달 */}
+      <ClearModal />
     </GameHeader>
   );
 };

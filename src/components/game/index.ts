@@ -1,5 +1,6 @@
 export { default as Board } from "./Board";
 export { default as Cell } from "./Cell";
+export { default as ClearModal } from "./ClearModal";
 export { default as GameHeader } from "./GameHeader";
 export { default as LockedCellPopover } from "./LockedCellPopover";
 export { default as NumberPad } from "./NumberPad";
