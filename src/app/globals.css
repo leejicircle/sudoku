@@ -185,6 +185,12 @@
   --memo-cell-size: 12px;
 
   /* ── 🖌 타이포그래피 스케일 ── */
+  --text-display: 32px;
+  --text-heading: 24px;
+  --text-subheading: 18px;
+  --text-body: 16px;
+  --text-caption: 14px;
+  --text-small: 12px;
   --text-cell: 24px;
   --text-cell-given: 24px;
   --text-cell-memo: 10px;
