@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/game-store";
 import {
   DifficultyCard,
+  ContinueBanner,
   DIFFICULTIES,
 } from "@/components/home";
 import type { DifficultyItem } from "@/components/home";
@@ -16,9 +17,8 @@ import type { DifficultyItem } from "@/components/home";
 /**
  * 홈 페이지 메인 콘텐츠 (클라이언트)
  *
- * - 타이틀 영역 + 난이도 카드 4개
+ * - 타이틀 영역 + 이어하기 배너 + 난이도 카드 4개
  * - 난이도 카드 클릭 → 해당 난이도의 첫 스테이지로 게임 시작
- * - TODO: feat/ui-game-page 완료 후 ContinueBanner 연동
  *
  * @see docs/design/home.md
  */
@@ -50,7 +50,8 @@ const HomeContent = () => {
 
       {/* ── 카드 영역 (max-w 제한) ── */}
       <div className="mx-auto w-full max-w-[600px]">
-        {/* TODO: feat/ui-game-page 완료 후 ContinueBanner 연동 */}
+        {/* 이어하기 배너 (진행 중인 게임이 있을 때만 표시) */}
+        <ContinueBanner />
 
         {/* 난이도 카드 목록 */}
         <div className="flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-4">
