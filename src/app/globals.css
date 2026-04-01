@@ -189,6 +189,7 @@
   --text-cell-given: 24px;
   --text-cell-memo: 10px;
   --text-numpad: 24px;
+  --text-timer: 20px;
 
   /* ── 🖌 그림자 (Light) ── */
   --shadow-board: 0 2px 8px oklch(0 0 0 / 0.08), 0 0 0 3px oklch(0.25 0 0);
