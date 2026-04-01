@@ -22,7 +22,11 @@ const DIFFICULTY_COLOR_MAP: Record<string, string> = {
   마스터: "text-difficulty-expert",
 };
 
-/** 3별 기준 시간 (초) */
+/**
+ * 3별 기준 시간 (초)
+ * 키는 STAGE_RANGES.label 기준 (입문/초급/중급/고급/마스터)
+ * cf. 홈 카드(difficulty-data.ts)는 쉬움/보통/어려움/전문가 표기
+ */
 const THREE_STAR_THRESHOLD: Record<string, number> = {
   입문: 300,   // 5분
   초급: 600,   // 10분
@@ -169,12 +173,10 @@ const ClearModal = () => {
 
   // ── 핸들러 ──
   const handleNextStage = useCallback(() => {
-    if (isLastStage) {
-      initGame(stage); // 같은 스테이지 재시작
-    } else {
-      initGame(stage + 1);
-    }
-  }, [stage, isLastStage, initGame]);
+    const nextStage = isLastStage ? stage : stage + 1;
+    initGame(nextStage);
+    router.replace(`/game?stage=${nextStage}`);
+  }, [stage, isLastStage, initGame, router]);
 
   const handleRanking = useCallback(() => {
     if (isAuthenticated) {
