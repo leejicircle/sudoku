@@ -171,7 +171,7 @@ const Cell = memo(
         onClick={handleClick}
         className={cn(
           /* 크기 */
-          "size-[var(--cell-size)] md:size-[var(--cell-size-md)] lg:size-[var(--cell-size-lg)]",
+          "size-[var(--cell-size)]",
           /* 레이아웃 */
           "relative flex items-center justify-center",
           /* 배경 & 보더 */

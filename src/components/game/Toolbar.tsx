@@ -46,7 +46,7 @@ const ToolButton = memo(
       }
     >
       {icon}
-      <span className="text-[11px] font-normal leading-none">{label}</span>
+      <span className="text-[11px] font-normal leading-none max-[359px]:hidden">{label}</span>
     </button>
   ),
 );

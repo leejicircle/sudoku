@@ -299,6 +299,66 @@
   --shadow-xl: 0 20px 25px oklch(0 0 0 / 0.30), 0 8px 10px oklch(0 0 0 / 0.15);
 }
 
+/* ── 🖌 반응형 브레이크포인트 CSS 변수 오버라이드 ── */
+
+/* 초소형 뷰포트: iPhone SE (320px) 등 */
+@media (max-width: 359px) {
+  :root {
+    --cell-size: 34px;
+    --text-cell: 20px;
+    --text-cell-given: 20px;
+    --text-cell-memo: 8px;
+    --numpad-button-size: 42px;
+    --board-padding: 8px;
+    --numpad-gap: 6px;
+  }
+}
+
+/* sm: 대형 모바일 / 소형 태블릿 */
+@media (min-width: 640px) {
+  :root {
+    --cell-size: 44px;
+    --board-padding: 24px;
+    --numpad-button-size: 52px;
+  }
+}
+
+/* md: 태블릿 */
+@media (min-width: 768px) {
+  :root {
+    --cell-size: 48px;
+    --board-padding: 32px;
+    --numpad-button-size: 52px;
+    --text-cell: 28px;
+    --text-cell-given: 28px;
+    --text-numpad: 26px;
+  }
+}
+
+/* lg: 데스크톱 */
+@media (min-width: 1024px) {
+  :root {
+    --cell-size: 56px;
+    --board-padding: 40px;
+    --numpad-button-size: 56px;
+    --text-cell: 32px;
+    --text-cell-given: 32px;
+    --text-cell-memo: 11px;
+    --text-numpad: 28px;
+  }
+}
+
+/* ── 🖌 모션 감소 설정 대응 ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
