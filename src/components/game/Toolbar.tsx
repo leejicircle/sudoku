@@ -81,7 +81,7 @@ const Toolbar = ({ className = "" }: ToolbarProps) => {
   const undo = useGameStore((s) => s.undo);
   const clearValue = useGameStore((s) => s.clearValue);
   const clearNotes = useGameStore((s) => s.clearNotes);
-  const useHint = useGameStore((s) => s.useHint);
+  const applyHint = useGameStore((s) => s.useHint);
   const toggleNoteMode = useGameStore((s) => s.toggleNoteMode);
 
   /** 최대 힌트 횟수 */
@@ -130,8 +130,8 @@ const Toolbar = ({ className = "" }: ToolbarProps) => {
   }, [toggleNoteMode]);
 
   const handleHint = useCallback(() => {
-    useHint();
-  }, [useHint]);
+    applyHint();
+  }, [applyHint]);
 
   // 보드가 비어있으면 렌더링하지 않음
   if (board.length === 0) return null;
