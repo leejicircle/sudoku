@@ -45,7 +45,7 @@ const PauseOverlay = () => {
       className={
         "fixed inset-0 z-[var(--z-modal-overlay)] " +
         "flex flex-col items-center justify-center " +
-        "bg-background/80 backdrop-blur-sm " +
+        "bg-background/80 backdrop-blur " +
         "animate-in fade-in duration-[var(--duration-slow)]"
       }
       role="dialog"
