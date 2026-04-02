@@ -4,6 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PartyPopper, Star, Play, Trophy, Home, Unlock } from "lucide-react";
 import { useGameStore } from "@/stores/game-store";
+import { useGuestRecordStore } from "@/stores/guest-record-store";
 import { STAGE_RANGES } from "@/types/game";
 import { formatTime } from "./Timer";
 import { Button } from "@/components/ui/button";
@@ -157,6 +158,9 @@ const ClearModal = () => {
   // ── 인증 상태 ──
   const { isAuthenticated } = useAuth();
 
+  // ── 게스트 기록 저장 ──
+  const addGuestRecord = useGuestRecordStore((s) => s.addRecord);
+
   // ── 계산된 값 ──
   const { label: difficultyLabel, colorClass: difficultyColor } = useMemo(
     () => getDifficultyInfo(stage),
@@ -170,6 +174,27 @@ const ClearModal = () => {
 
   const unlockInfo = useMemo(() => getUnlockInfo(stage), [stage]);
   const isLastStage = stage >= MAX_STAGE;
+
+  // ── 게스트 클리어 기록 자동 저장 ──
+  const savedRef = useRef(false);
+
+  useEffect(() => {
+    // 게임 완료 + 비로그인 + 아직 저장 안 했으면 기록 추가
+    if (isComplete && !isAuthenticated && !savedRef.current) {
+      savedRef.current = true;
+      addGuestRecord({
+        stage,
+        clearTime: timer,
+        hintsUsed,
+        stars,
+      });
+    }
+
+    // 새 게임 시작 시 플래그 초기화
+    if (!isComplete) {
+      savedRef.current = false;
+    }
+  }, [isComplete, isAuthenticated, stage, timer, hintsUsed, stars, addGuestRecord]);
 
   // ── 핸들러 ──
   const handleNextStage = useCallback(() => {
