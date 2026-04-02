@@ -68,8 +68,11 @@ const useGuestSync = (): UseGuestSyncReturn => {
         return null;
       }
 
-      // 동기화 성공 — 로컬 기록 삭제
-      clearRecords();
+      // DB에 실제 저장(synced)된 건이 있을 때만 로컬 기록 삭제
+      // Epic #6 DB 연결 전까지는 pending만 반환되므로 기록 보존
+      if (json.data.synced > 0) {
+        clearRecords();
+      }
       return json.data;
     } catch (error) {
       // 네트워크 에러 등 — 로컬 기록 보존
