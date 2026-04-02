@@ -85,15 +85,16 @@ export const validateGuestRecord = (
     };
   }
 
-  // clearTime: 0 초과, MAX_CLEAR_TIME 이하
+  // clearTime: 1~MAX_CLEAR_TIME 정수
   if (
     typeof r.clearTime !== "number" ||
+    !Number.isInteger(r.clearTime) ||
     r.clearTime <= 0 ||
     r.clearTime > MAX_CLEAR_TIME
   ) {
     return {
       isValid: false,
-      reason: `클리어 시간은 1~${MAX_CLEAR_TIME}초 사이여야 합니다`,
+      reason: `클리어 시간은 1~${MAX_CLEAR_TIME}초 정수여야 합니다`,
     };
   }
 
@@ -195,9 +196,11 @@ export const validateSyncRequest = (
 
     seenIds.add(r.id);
     validRecords.push(r);
+    // DB 저장 전까지는 "pending", 실제 저장 완료 후 "synced"로 변경
+    // → Epic #6에서 DB 연결 시 이 status를 "synced"로 전환
     results.push({
       guestRecordId: r.id,
-      status: "synced",
+      status: "pending",
     });
   }
 

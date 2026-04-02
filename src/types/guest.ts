@@ -38,16 +38,24 @@ export interface GuestSyncRequest {
 export interface GuestSyncResultItem {
   /** 게스트 기록 ID */
   guestRecordId: string;
-  /** 동기화 상태 */
-  status: "synced" | "duplicate" | "invalid";
+  /**
+   * 동기화 상태
+   * - synced: DB에 저장 완료
+   * - pending: 유효성 검증 통과, DB 저장 대기 (Epic #6 연결 전)
+   * - duplicate: 중복 스킵
+   * - invalid: 유효성 검증 실패
+   */
+  status: "synced" | "pending" | "duplicate" | "invalid";
 }
 
 /** 동기화 응답 데이터 */
 export interface GuestSyncResponseData {
   /** 전체 처리 건수 */
   total: number;
-  /** 신규 동기화 건수 */
+  /** DB 저장 완료 건수 */
   synced: number;
+  /** 유효성 통과 + DB 저장 대기 건수 (Epic #6 전) */
+  pending: number;
   /** 중복 스킵 건수 */
   duplicates: number;
   /** 유효하지 않은 건수 */

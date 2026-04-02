@@ -66,12 +66,14 @@ export const POST = async (req: Request) => {
 
   // ── 5. 응답 ──
   const synced = results.filter((r) => r.status === "synced").length;
+  const pending = results.filter((r) => r.status === "pending").length;
   const duplicates = results.filter((r) => r.status === "duplicate").length;
   const invalid = results.filter((r) => r.status === "invalid").length;
 
   const responseData: GuestSyncResponseData = {
     total: results.length,
     synced,
+    pending,
     duplicates,
     invalid,
     results,
