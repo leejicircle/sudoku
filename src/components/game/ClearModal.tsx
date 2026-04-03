@@ -9,6 +9,7 @@ import { STAGE_RANGES } from "@/types/game";
 import { formatTime } from "./Timer";
 import { Button } from "@/components/ui/button";
 import useAuth from "@/hooks/useAuth";
+import { useGameClear } from "@/hooks/useGameClear";
 
 // ────────────────────────────────────────
 // 상수
@@ -158,8 +159,9 @@ const ClearModal = () => {
   // ── 인증 상태 ──
   const { isAuthenticated } = useAuth();
 
-  // ── 게스트 기록 저장 ──
+  // ── 기록 저장 ──
   const addGuestRecord = useGuestRecordStore((s) => s.addRecord);
+  const { mutate: saveGameClear } = useGameClear();
 
   // ── 계산된 값 ──
   const { label: difficultyLabel, colorClass: difficultyColor } = useMemo(
@@ -175,26 +177,27 @@ const ClearModal = () => {
   const unlockInfo = useMemo(() => getUnlockInfo(stage), [stage]);
   const isLastStage = stage >= MAX_STAGE;
 
-  // ── 게스트 클리어 기록 자동 저장 ──
+  // ── 클리어 기록 자동 저장 ──
   const savedRef = useRef(false);
 
   useEffect(() => {
-    // 게임 완료 + 비로그인 + 아직 저장 안 했으면 기록 추가
-    if (isComplete && !isAuthenticated && !savedRef.current) {
-      savedRef.current = true;
-      addGuestRecord({
-        stage,
-        clearTime: timer,
-        hintsUsed,
-        stars,
-      });
+    if (!isComplete || savedRef.current) return;
+
+    savedRef.current = true;
+
+    if (isAuthenticated) {
+      // 로그인 사용자 → 서버 저장 (POST /api/game/clear)
+      saveGameClear({ stage, clearTime: timer, hintsUsed, stars });
+    } else {
+      // 비로그인 → 로컬 저장
+      addGuestRecord({ stage, clearTime: timer, hintsUsed, stars });
     }
 
     // 새 게임 시작 시 플래그 초기화
     if (!isComplete) {
       savedRef.current = false;
     }
-  }, [isComplete, isAuthenticated, stage, timer, hintsUsed, stars, addGuestRecord]);
+  }, [isComplete, isAuthenticated, stage, timer, hintsUsed, stars, addGuestRecord, saveGameClear]);
 
   // ── 핸들러 ──
   const handleNextStage = useCallback(() => {
