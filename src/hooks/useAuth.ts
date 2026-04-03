@@ -80,7 +80,11 @@ const useAuth = (): UseAuthReturn => {
   }, [pathname]);
 
   const logout = useCallback(async (callbackUrl: string = "/") => {
-    await signOut({ callbackUrl });
+    try {
+      await signOut({ callbackUrl });
+    } catch (error) {
+      console.error("[useAuth] signOut 실패:", error);
+    }
   }, []);
 
   return {

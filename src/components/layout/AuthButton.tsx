@@ -54,8 +54,9 @@ const AuthButton = () => {
 
           {/* 로그아웃 */}
           <DropdownMenuItem
-            onSelect={async () => {
-              await logout();
+            onSelect={(e) => {
+              e.preventDefault(); // 메뉴 자동 닫힘 방지 → signOut 리다이렉트 보장
+              void logout();
             }}
             className="cursor-pointer gap-2"
           >
