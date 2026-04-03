@@ -32,7 +32,7 @@ const DifficultyTabs = ({ activeId, onChange }: DifficultyTabsProps) => {
             aria-selected={isActive}
             onClick={() => onChange(tab)}
             className={cn(
-              "relative flex-1 py-3 text-sm font-medium transition-colors duration-200",
+              "relative flex-1 cursor-pointer py-3 text-sm font-medium transition-colors duration-200",
               isActive
                 ? "font-semibold text-foreground"
                 : "text-muted-foreground hover:text-foreground",
