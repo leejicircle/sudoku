@@ -54,9 +54,7 @@ const AuthButton = () => {
 
           {/* 로그아웃 */}
           <DropdownMenuItem
-            onSelect={async () => {
-              await logout();
-            }}
+            onClick={() => void logout()}
             className="cursor-pointer gap-2"
           >
             <LogOut className="size-4" />

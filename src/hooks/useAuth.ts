@@ -2,7 +2,7 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useCallback, useMemo } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 // ────────────────────────────────────────
 // Types
@@ -58,6 +58,7 @@ export interface UseAuthReturn {
  */
 const useAuth = (): UseAuthReturn => {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const pathname = usePathname();
 
   const user = useMemo<AuthUser | null>(() => {
@@ -80,8 +81,14 @@ const useAuth = (): UseAuthReturn => {
   }, [pathname]);
 
   const logout = useCallback(async (callbackUrl: string = "/") => {
-    await signOut({ callbackUrl });
-  }, []);
+    try {
+      await signOut({ redirect: false });
+      router.push(callbackUrl);
+      router.refresh();
+    } catch (error) {
+      console.error("[useAuth] signOut 실패:", error);
+    }
+  }, [router]);
 
   return {
     user,
