@@ -10,4 +10,5 @@ export type {
   Account,
   Session,
   VerificationToken,
+  GameRecord,
 } from "@prisma/client";

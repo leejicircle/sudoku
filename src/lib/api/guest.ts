@@ -196,8 +196,7 @@ export const validateSyncRequest = (
 
     seenIds.add(r.id);
     validRecords.push(r);
-    // DB 저장 전까지는 "pending", 실제 저장 완료 후 "synced"로 변경
-    // → Epic #6에서 DB 연결 시 이 status를 "synced"로 전환
+    // 검증 통과 시 "pending", DB 저장 완료 후 호출부에서 "synced"로 전환
     results.push({
       guestRecordId: r.id,
       status: "pending",
