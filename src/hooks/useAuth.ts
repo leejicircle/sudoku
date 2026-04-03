@@ -3,6 +3,8 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useGameStore } from "@/stores/game-store";
+import { useGuestRecordStore } from "@/stores/guest-record-store";
 
 // ────────────────────────────────────────
 // Types
@@ -83,6 +85,13 @@ const useAuth = (): UseAuthReturn => {
   const logout = useCallback(async (callbackUrl: string = "/") => {
     try {
       await signOut({ redirect: false });
+
+      // 게임·게스트 기록 스토어 초기화 (persist 스토리지 + 인메모리)
+      useGameStore.persist.clearStorage();
+      useGameStore.setState(useGameStore.getInitialState());
+      useGuestRecordStore.persist.clearStorage();
+      useGuestRecordStore.setState(useGuestRecordStore.getInitialState());
+
       router.push(callbackUrl);
       router.refresh();
     } catch (error) {
