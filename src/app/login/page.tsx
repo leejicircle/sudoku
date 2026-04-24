@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { Grid3X3, AlertCircle } from "lucide-react";
 import OAuthButton from "@/components/auth/oauth-button";
-import { AppLayout } from "@/components/layout";
+import { AppLayout, BrandWordmark } from "@/components/layout";
 import { useAuth } from "@/hooks";
 
 /** Auth.js 에러 코드 → 사용자 친화적 메시지 */
@@ -53,14 +53,14 @@ const LoginContent = () => {
       <div className="flex flex-1 items-center justify-center px-6 py-10 lg:gap-16">
         {/* 좌측 일러스트 영역 (≥1024px만 표시) */}
         <div className="hidden lg:flex lg:flex-col lg:items-center lg:gap-6">
-          <div className="flex size-32 items-center justify-center rounded-2xl bg-sudoku-primary/10">
+          <div className="flex size-32 items-center justify-center rounded-3xl bg-gradient-to-br from-sudoku-primary/20 via-sudoku-primary/10 to-transparent backdrop-blur-sm">
             <Grid3X3
               className="size-20 text-sudoku-primary"
               strokeWidth={1.5}
             />
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold">스도쿠</p>
+            <BrandWordmark size="md" />
             <p className="mt-2 text-sm text-muted-foreground">
               언제 어디서든 즐기는 숫자 퍼즐
             </p>
@@ -72,16 +72,20 @@ const LoginContent = () => {
           className={
             "flex w-full flex-col items-center " +
             /* ≥768px: 카드 UI */
-            "md:w-100 md:rounded-xl md:border md:border-border md:bg-card md:p-8 md:shadow-lg"
+            "md:w-100 md:rounded-2xl md:border md:border-border/60 md:bg-card/80 md:p-8 md:shadow-xl md:backdrop-blur-xl"
           }
         >
           {/* 로고 & 텍스트 (PC 2컬럼에서는 숨김) */}
           <div className="flex flex-col items-center lg:hidden">
-            <Grid3X3
-              className="size-14 text-sudoku-primary xs:size-16"
-              strokeWidth={1.5}
-            />
-            <h2 className="mt-4 text-2xl font-bold">스도쿠</h2>
+            <div className="flex size-20 items-center justify-center rounded-2xl bg-gradient-to-br from-sudoku-primary/20 via-sudoku-primary/10 to-transparent">
+              <Grid3X3
+                className="size-12 text-sudoku-primary"
+                strokeWidth={1.5}
+              />
+            </div>
+            <h2 className="mt-4">
+              <BrandWordmark size="sm" />
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               스도쿠에 오신 것을 환영합니다
             </p>

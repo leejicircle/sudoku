@@ -11,18 +11,18 @@ import { LogIn } from "lucide-react";
 
 const LoginBanner = () => {
   return (
-    <div
-      className="mx-4 flex items-center gap-3 rounded-md border border-info/20 bg-info/10 px-4 py-3"
-    >
-      <LogIn className="size-4 shrink-0 text-foreground" />
-      <p className="flex-1 text-sm">
+    <div className="mx-4 flex items-center gap-3 rounded-2xl border border-sudoku-primary/25 bg-gradient-to-r from-sudoku-primary/15 via-sudoku-primary/10 to-transparent px-4 py-3 backdrop-blur-md">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sudoku-primary/15">
+        <LogIn className="size-4 text-sudoku-primary" />
+      </div>
+      <p className="flex-1 text-sm text-foreground">
         로그인하면 기록을 저장할 수 있어요
       </p>
       <Link
         href="/login"
-        className="shrink-0 text-sm font-medium text-sudoku-primary hover:underline"
+        className="shrink-0 rounded-full bg-sudoku-primary px-3 py-1.5 text-xs font-semibold text-sudoku-primary-foreground shadow-sm transition-all hover:opacity-90"
       >
-        로그인 &rarr;
+        로그인
       </Link>
     </div>
   );

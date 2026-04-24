@@ -292,6 +292,12 @@
   --warning: oklch(0.68 0.13 85);
   --info: oklch(0.58 0.13 250);
 
+  /* ── 🖌 난이도 색상 (Dark) — 어두운 배경에서 채도/명도 보정 ── */
+  --difficulty-easy: oklch(0.68 0.18 145);
+  --difficulty-medium: oklch(0.72 0.17 85);
+  --difficulty-hard: oklch(0.65 0.20 50);
+  --difficulty-expert: oklch(0.58 0.22 25);
+
   /* ── 🖌 그림자 (Dark → 글로우 효과) ── */
   --shadow-board: 0 2px 8px oklch(0 0 0 / 0.3), 0 0 0 3px oklch(0.80 0 0);
   --shadow-cell-selected: inset 0 0 0 2px oklch(0.68 0.16 250);
@@ -507,5 +513,141 @@
   100% {
     transform: scale(1);
     filter: brightness(1);
+  }
+}
+
+/* ── 🖌 홈 화면 데코레이션 ── */
+
+/* 그라디언트 메쉬 배경 */
+.home-mesh-bg {
+  background:
+    radial-gradient(circle at 15% 20%, oklch(0.88 0.12 250 / 0.55), transparent 45%),
+    radial-gradient(circle at 85% 15%, oklch(0.85 0.14 320 / 0.45), transparent 50%),
+    radial-gradient(circle at 75% 85%, oklch(0.86 0.13 30 / 0.40), transparent 55%),
+    radial-gradient(circle at 20% 90%, oklch(0.88 0.11 180 / 0.40), transparent 50%);
+}
+
+.dark .home-mesh-bg {
+  background:
+    radial-gradient(circle at 15% 20%, oklch(0.40 0.18 260 / 0.55), transparent 45%),
+    radial-gradient(circle at 85% 15%, oklch(0.38 0.18 320 / 0.45), transparent 50%),
+    radial-gradient(circle at 75% 85%, oklch(0.40 0.18 30 / 0.40), transparent 55%),
+    radial-gradient(circle at 20% 90%, oklch(0.38 0.16 180 / 0.40), transparent 50%);
+}
+
+/* 9x9 스도쿠 그리드 데코 (배경)
+ * 모바일에서는 backdrop-blur 중첩과 함께 스크롤 저더를 유발할 수 있어 768px 미만 비활성화. */
+.sudoku-grid-bg {
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--sudoku-primary) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--sudoku-primary) 6%, transparent) 1px, transparent 1px);
+  background-size: calc(100% / 9) calc(100% / 9);
+}
+
+@media (max-width: 767px) {
+  .sudoku-grid-bg {
+    background-image: none;
+  }
+}
+
+/* 난이도별 그라디언트 — 두 번째 스톱은 어둡게 색을 섞어 깊이감 부여
+ * (color-mix로 var(--difficulty-*) 토큰 기반이라 다크모드 자동 보정) */
+.gradient-easy {
+  background: linear-gradient(
+    135deg,
+    var(--difficulty-easy),
+    color-mix(in oklch, var(--difficulty-easy) 70%, black)
+  );
+}
+.gradient-medium {
+  background: linear-gradient(
+    135deg,
+    var(--difficulty-medium),
+    color-mix(in oklch, var(--difficulty-medium) 70%, black)
+  );
+}
+.gradient-hard {
+  background: linear-gradient(
+    135deg,
+    var(--difficulty-hard),
+    color-mix(in oklch, var(--difficulty-hard) 70%, black)
+  );
+}
+.gradient-expert {
+  background: linear-gradient(
+    135deg,
+    var(--difficulty-expert),
+    color-mix(in oklch, var(--difficulty-expert) 70%, black)
+  );
+}
+
+/* 텍스트 그라디언트 */
+.text-gradient-brand {
+  background: linear-gradient(
+    135deg,
+    var(--sudoku-primary) 0%,
+    var(--difficulty-hard) 50%,
+    var(--difficulty-expert) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* 카드 호버 글로우 — 난이도 토큰 기반으로 다크모드도 자동 보정 */
+.card-glow-easy:hover {
+  box-shadow: 0 16px 48px color-mix(in oklch, var(--difficulty-easy) 30%, transparent);
+}
+.card-glow-medium:hover {
+  box-shadow: 0 16px 48px color-mix(in oklch, var(--difficulty-medium) 30%, transparent);
+}
+.card-glow-hard:hover {
+  box-shadow: 0 16px 48px color-mix(in oklch, var(--difficulty-hard) 30%, transparent);
+}
+.card-glow-expert:hover {
+  box-shadow: 0 16px 48px color-mix(in oklch, var(--difficulty-expert) 30%, transparent);
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.animate-text-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--sudoku-primary) 0%,
+    var(--difficulty-hard) 25%,
+    var(--difficulty-expert) 50%,
+    var(--difficulty-hard) 75%,
+    var(--sudoku-primary) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* Windows 고대비 모드 등 forced-colors 환경에서는
+ * background-clip: text 패턴이 텍스트를 보이지 않게 만들 수 있어 폴백 처리. */
+@media (forced-colors: active) {
+  .animate-text-shimmer,
+  .text-gradient-brand {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: CanvasText;
+    animation: none;
   }
 }

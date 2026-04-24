@@ -56,8 +56,25 @@ const AppLayout = ({
   const variant = headerVariant ?? inferVariant(pathname);
   const showNav = hasBottomNav(pathname, hideBottomNav);
 
+  // 게임 페이지는 집중을 위해 깨끗한 배경 유지
+  const showAmbientBg = variant !== "game";
+
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="relative flex min-h-dvh flex-col overflow-hidden">
+      {/* ── 전역 ambient 배경 (게임 외) ── */}
+      {showAmbientBg && (
+        <>
+          <div
+            aria-hidden="true"
+            className="home-mesh-bg pointer-events-none absolute inset-0 -z-10"
+          />
+          <div
+            aria-hidden="true"
+            className="sudoku-grid-bg pointer-events-none absolute inset-0 -z-10 opacity-50"
+          />
+        </>
+      )}
+
       <Header
         variant={variant}
         centerContent={centerContent}
@@ -67,7 +84,7 @@ const AppLayout = ({
       {/* 콘텐츠 영역 */}
       <main
         className={
-          "flex flex-1 flex-col " +
+          "relative flex flex-1 flex-col " +
           (showNav
             ? "pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0"
             : "pb-[env(safe-area-inset-bottom)]")

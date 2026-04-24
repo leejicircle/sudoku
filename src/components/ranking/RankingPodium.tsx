@@ -71,8 +71,22 @@ const RankingPodium = ({ rankings }: RankingPodiumProps) => {
   if (top3.length === 0) return null;
 
   return (
-    <div className="mx-4 rounded-lg bg-card p-5" style={{ minHeight: 180 }}>
-      <div className="flex items-end justify-center">
+    <div
+      className="relative mx-4 overflow-hidden rounded-2xl border border-border/60 bg-card/80 p-5 shadow-lg backdrop-blur-md"
+      style={{ minHeight: 180 }}
+    >
+      {/* 상단 그라디언트 액센트 라인 */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sudoku-primary/60 to-transparent"
+      />
+      {/* 배경 글로우 */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-12 left-1/2 size-40 -translate-x-1/2 rounded-full bg-gradient-to-br from-warning/30 via-sudoku-primary/25 to-transparent blur-2xl"
+      />
+
+      <div className="relative flex items-end justify-center">
         {PODIUM_ORDER.map((index) => {
           const entry = top3[index];
           if (!entry) return <div key={index} className="flex-1" />;

@@ -5,6 +5,7 @@ export { default as AppLogo } from "./AppLogo";
 export { default as BackButton } from "./BackButton";
 export { default as AuthButton } from "./AuthButton";
 export { default as DesktopNav } from "./DesktopNav";
+export { default as BrandWordmark } from "./BrandWordmark";
 export type { HeaderVariant } from "./Header";
 export { navItems, BOTTOM_NAV_HIDDEN_PATHS } from "./nav-items";
 export type { NavItem } from "./nav-items";

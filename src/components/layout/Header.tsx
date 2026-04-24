@@ -93,7 +93,8 @@ const Header = ({ variant, centerContent, rightContent }: HeaderProps) => {
   return (
     <header
       className={
-        "sticky top-0 z-[var(--z-header)] border-b border-border bg-background " +
+        "sticky top-0 z-[var(--z-header)] border-b border-border/40 " +
+        "bg-background/70 backdrop-blur-xl " +
         "h-14 md:h-16 " +
         "pt-[env(safe-area-inset-top)]"
       }
