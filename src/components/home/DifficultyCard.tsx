@@ -20,20 +20,6 @@ interface DifficultyCardProps {
   onPress: (difficulty: DifficultyItem) => void;
 }
 
-const GRADIENT_BY_ID: Record<string, string> = {
-  easy: "gradient-easy",
-  medium: "gradient-medium",
-  hard: "gradient-hard",
-  expert: "gradient-expert",
-};
-
-const GLOW_BY_ID: Record<string, string> = {
-  easy: "card-glow-easy",
-  medium: "card-glow-medium",
-  hard: "card-glow-hard",
-  expert: "card-glow-expert",
-};
-
 const UnlockedInfo = ({
   bestTime,
   stars,
@@ -90,8 +76,7 @@ const DifficultyCard = ({
     onPress(difficulty);
   };
 
-  const gradientClass = GRADIENT_BY_ID[difficulty.id] ?? "";
-  const glowClass = GLOW_BY_ID[difficulty.id] ?? "";
+  const { gradientClass, glowClass } = difficulty;
   const orderLabel = String(index + 1).padStart(2, "0");
 
   return (

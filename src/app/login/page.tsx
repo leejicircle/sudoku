@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { Grid3X3, AlertCircle } from "lucide-react";
 import OAuthButton from "@/components/auth/oauth-button";
-import { AppLayout } from "@/components/layout";
+import { AppLayout, BrandWordmark } from "@/components/layout";
 import { useAuth } from "@/hooks";
 
 /** Auth.js 에러 코드 → 사용자 친화적 메시지 */
@@ -60,9 +60,7 @@ const LoginContent = () => {
             />
           </div>
           <div className="text-center">
-            <p className="animate-text-shimmer font-mono text-xl font-black tracking-[0.18em]">
-              S · U · D · O · K · U
-            </p>
+            <BrandWordmark size="md" />
             <p className="mt-2 text-sm text-muted-foreground">
               언제 어디서든 즐기는 숫자 퍼즐
             </p>
@@ -85,8 +83,8 @@ const LoginContent = () => {
                 strokeWidth={1.5}
               />
             </div>
-            <h2 className="mt-4 animate-text-shimmer font-mono text-lg font-black tracking-[0.18em]">
-              S · U · D · O · K · U
+            <h2 className="mt-4">
+              <BrandWordmark size="sm" />
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               스도쿠에 오신 것을 환영합니다

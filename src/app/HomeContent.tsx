@@ -10,6 +10,7 @@ import {
   DIFFICULTIES,
 } from "@/components/home";
 import type { DifficultyItem } from "@/components/home";
+import { BrandWordmark } from "@/components/layout";
 
 const HomeContent = () => {
   const router = useRouter();
@@ -37,8 +38,8 @@ const HomeContent = () => {
           </div>
 
           {/* 메인 타이틀 */}
-          <h1 className="animate-text-shimmer font-mono text-[clamp(1.4rem,5vw,2.75rem)] font-black tracking-[0.1em] whitespace-nowrap">
-            S · U · D · O · K · U
+          <h1>
+            <BrandWordmark size="lg" />
           </h1>
         </header>
 

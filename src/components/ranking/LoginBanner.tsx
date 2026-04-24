@@ -11,7 +11,7 @@ import { LogIn } from "lucide-react";
 
 const LoginBanner = () => {
   return (
-    <div className="mx-4 flex items-center gap-3 rounded-2xl border border-sudoku-primary/20 bg-gradient-to-r from-sudoku-primary/12 via-sudoku-primary/8 to-transparent px-4 py-3 backdrop-blur-md">
+    <div className="mx-4 flex items-center gap-3 rounded-2xl border border-sudoku-primary/25 bg-gradient-to-r from-sudoku-primary/15 via-sudoku-primary/10 to-transparent px-4 py-3 backdrop-blur-md">
       <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sudoku-primary/15">
         <LogIn className="size-4 text-sudoku-primary" />
       </div>

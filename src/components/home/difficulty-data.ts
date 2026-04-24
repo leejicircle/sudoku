@@ -22,6 +22,10 @@ export interface DifficultyItem {
   indicatorClass: string;
   /** 난이도 상징 아이콘 (lucide-react) */
   icon: LucideIcon;
+  /** 카드 좌측 사이드바 그라디언트 클래스 (globals.css 정의) */
+  gradientClass: string;
+  /** 카드 호버 시 글로우 그림자 클래스 (globals.css 정의) */
+  glowClass: string;
   /** 해금 조건 텍스트 (null이면 항상 해금) */
   unlockCondition: string | null;
   /** 게임 시작 시 사용할 첫 번째 스테이지 번호 */
@@ -53,6 +57,8 @@ export const DIFFICULTIES: readonly DifficultyItem[] = [
     labelEn: "Easy",
     indicatorClass: "bg-difficulty-easy",
     icon: Sprout,
+    gradientClass: "gradient-easy",
+    glowClass: "card-glow-easy",
     unlockCondition: null,
     startStage: 1,
   },
@@ -62,6 +68,8 @@ export const DIFFICULTIES: readonly DifficultyItem[] = [
     labelEn: "Medium",
     indicatorClass: "bg-difficulty-medium",
     icon: Flame,
+    gradientClass: "gradient-medium",
+    glowClass: "card-glow-medium",
     unlockCondition: "쉬움 클리어 시 해금",
     startStage: 11,
   },
@@ -71,6 +79,8 @@ export const DIFFICULTIES: readonly DifficultyItem[] = [
     labelEn: "Hard",
     indicatorClass: "bg-difficulty-hard",
     icon: Zap,
+    gradientClass: "gradient-hard",
+    glowClass: "card-glow-hard",
     unlockCondition: "보통 클리어 시 해금",
     startStage: 21,
   },
@@ -80,6 +90,8 @@ export const DIFFICULTIES: readonly DifficultyItem[] = [
     labelEn: "Expert",
     indicatorClass: "bg-difficulty-expert",
     icon: Crown,
+    gradientClass: "gradient-expert",
+    glowClass: "card-glow-expert",
     unlockCondition: "어려움 클리어 시 해금",
     startStage: 31,
   },
