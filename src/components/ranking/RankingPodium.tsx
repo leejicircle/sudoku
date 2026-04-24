@@ -83,7 +83,7 @@ const RankingPodium = ({ rankings }: RankingPodiumProps) => {
       {/* 배경 글로우 */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-12 left-1/2 size-40 -translate-x-1/2 rounded-full bg-gradient-to-br from-warning/30 via-sudoku-primary/20 to-transparent blur-2xl"
+        className="pointer-events-none absolute -top-12 left-1/2 size-40 -translate-x-1/2 rounded-full bg-gradient-to-br from-warning/30 via-sudoku-primary/25 to-transparent blur-2xl"
       />
 
       <div className="relative flex items-end justify-center">

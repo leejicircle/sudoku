@@ -142,7 +142,7 @@ const ContinueBanner = () => {
       className={
         "flex w-full items-center justify-between " +
         "rounded-[var(--radius-lg)] " +
-        "border border-sudoku-primary/20 bg-sudoku-primary/10 " +
+        "border border-sudoku-primary/25 bg-sudoku-primary/12 " +
         "p-4 mb-4 " +
         "transition-colors duration-(--duration-fast) " +
         "hover:bg-sudoku-primary/15 " +
