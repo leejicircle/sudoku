@@ -21,7 +21,10 @@ interface DifficultyTabsProps {
 
 const DifficultyTabs = ({ activeId, onChange }: DifficultyTabsProps) => {
   return (
-    <div className="relative flex border-b border-border" role="tablist">
+    <div
+      className="mx-4 flex gap-1.5 rounded-full border border-border/60 bg-card/70 p-1.5 backdrop-blur-md"
+      role="tablist"
+    >
       {DIFFICULTY_TABS.map((tab) => {
         const isActive = tab.id === activeId;
 
@@ -32,23 +35,22 @@ const DifficultyTabs = ({ activeId, onChange }: DifficultyTabsProps) => {
             aria-selected={isActive}
             onClick={() => onChange(tab)}
             className={cn(
-              "relative flex-1 cursor-pointer py-3 text-sm font-medium transition-colors duration-200",
+              "relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full py-2 text-sm font-semibold transition-all duration-(--duration-normal)",
               isActive
-                ? "font-semibold text-foreground"
-                : "text-muted-foreground hover:text-foreground",
+                ? "bg-sudoku-primary/12 text-sudoku-primary ring-1 ring-sudoku-primary/25 shadow-sm"
+                : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
             )}
           >
+            {/* 활성 도트 인디케이터 */}
+            <span
+              className={cn(
+                "size-1.5 rounded-full transition-opacity",
+                tab.activeClass,
+                isActive ? "opacity-100" : "opacity-40",
+              )}
+              aria-hidden="true"
+            />
             {tab.label}
-
-            {/* 활성 인디케이터 */}
-            {isActive && (
-              <span
-                className={cn(
-                  "absolute bottom-0 left-1/2 h-0.5 w-3/4 -translate-x-1/2 rounded-full transition-all duration-200",
-                  tab.activeClass,
-                )}
-              />
-            )}
           </button>
         );
       })}

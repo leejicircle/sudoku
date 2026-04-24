@@ -35,13 +35,30 @@ const RankingListItem = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 border-b border-border px-4 py-3 transition-colors hover:bg-accent",
-        isMe && "border-l-3 border-l-sudoku-primary bg-sudoku-primary/8",
+        "relative flex items-center gap-3 px-4 py-3 transition-colors duration-(--duration-normal) hover:bg-foreground/5",
+        "border-b border-border/40 last:border-b-0",
+        isMe &&
+          "bg-gradient-to-r from-sudoku-primary/10 via-sudoku-primary/5 to-transparent",
       )}
       style={{ minHeight: 64 }}
     >
+      {/* 본인 액센트 바 */}
+      {isMe && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-sudoku-primary"
+        />
+      )}
+
       {/* 순위 */}
-      <span className="w-8 shrink-0 font-mono text-base font-bold">
+      <span
+        className={cn(
+          "flex size-8 shrink-0 items-center justify-center rounded-lg font-mono text-sm font-bold",
+          isMe
+            ? "bg-sudoku-primary text-sudoku-primary-foreground"
+            : "bg-foreground/5 text-foreground",
+        )}
+      >
         {entry.rank}
       </span>
 
@@ -57,7 +74,9 @@ const RankingListItem = ({
         <p className="truncate text-sm font-medium">
           {entry.displayName}
           {isMe && (
-            <span className="ml-1 text-xs text-sudoku-primary">(나)</span>
+            <span className="ml-1.5 rounded-full bg-sudoku-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-sudoku-primary">
+              ME
+            </span>
           )}
         </p>
         <p className="text-xs text-muted-foreground">
@@ -67,7 +86,9 @@ const RankingListItem = ({
 
       {/* 시간 + 별점 */}
       <div className="flex shrink-0 flex-col items-end gap-0.5">
-        <span className="font-mono text-sm">{formatTime(entry.clearTime)}</span>
+        <span className="font-mono text-sm font-semibold">
+          {formatTime(entry.clearTime)}
+        </span>
         <StarRating stars={entry.stars} size={12} />
       </div>
     </div>
@@ -78,7 +99,7 @@ const RankingList = ({ rankings, currentUserId }: RankingListProps) => {
   if (rankings.length === 0) return null;
 
   return (
-    <div className="flex flex-col">
+    <div className="mx-4 overflow-hidden rounded-2xl border border-border/60 bg-card/70 shadow-sm backdrop-blur-md">
       {rankings.map((entry) => (
         <RankingListItem
           key={entry.userId}

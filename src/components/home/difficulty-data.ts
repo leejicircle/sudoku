@@ -5,6 +5,8 @@
  * UX 플로우: docs/design/ux-flow.md §3.1 해금 조건
  */
 
+import { Sprout, Flame, Zap, Crown, type LucideIcon } from "lucide-react";
+
 // ────────────────────────────────────────
 // Types
 // ────────────────────────────────────────
@@ -18,6 +20,8 @@ export interface DifficultyItem {
   labelEn: string;
   /** 좌측 인디케이터 Tailwind 배경 클래스 */
   indicatorClass: string;
+  /** 난이도 상징 아이콘 (lucide-react) */
+  icon: LucideIcon;
   /** 해금 조건 텍스트 (null이면 항상 해금) */
   unlockCondition: string | null;
   /** 게임 시작 시 사용할 첫 번째 스테이지 번호 */
@@ -48,6 +52,7 @@ export const DIFFICULTIES: readonly DifficultyItem[] = [
     label: "쉬움",
     labelEn: "Easy",
     indicatorClass: "bg-difficulty-easy",
+    icon: Sprout,
     unlockCondition: null,
     startStage: 1,
   },
@@ -56,6 +61,7 @@ export const DIFFICULTIES: readonly DifficultyItem[] = [
     label: "보통",
     labelEn: "Medium",
     indicatorClass: "bg-difficulty-medium",
+    icon: Flame,
     unlockCondition: "쉬움 클리어 시 해금",
     startStage: 11,
   },
@@ -64,6 +70,7 @@ export const DIFFICULTIES: readonly DifficultyItem[] = [
     label: "어려움",
     labelEn: "Hard",
     indicatorClass: "bg-difficulty-hard",
+    icon: Zap,
     unlockCondition: "보통 클리어 시 해금",
     startStage: 21,
   },
@@ -72,6 +79,7 @@ export const DIFFICULTIES: readonly DifficultyItem[] = [
     label: "전문가",
     labelEn: "Expert",
     indicatorClass: "bg-difficulty-expert",
+    icon: Crown,
     unlockCondition: "어려움 클리어 시 해금",
     startStage: 31,
   },
