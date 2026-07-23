@@ -2,12 +2,21 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useGuestSync from "@/hooks/useGuestSync";
+import { registerServiceWorker } from "@/lib/utils/sw-register";
 
 /** 로그인 전환 시 게스트 기록 자동 동기화 (SessionProvider 내부에서 작동) */
 const GuestSyncRunner = () => {
   useGuestSync();
+  return null;
+};
+
+/** 서비스워커 등록 (프로덕션에서만 — 개발 중 캐싱 혼란 방지) */
+const ServiceWorkerRunner = () => {
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") registerServiceWorker();
+  }, []);
   return null;
 };
 
@@ -28,6 +37,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
         <GuestSyncRunner />
+        <ServiceWorkerRunner />
         {children}
       </QueryClientProvider>
     </SessionProvider>
