@@ -13,9 +13,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://sudoku-flax-gamma.vercel.app";
+const SITE_DESCRIPTION =
+  "언제 어디서든 즐기는 무료 스도쿠 퍼즐 게임. 50개 스테이지, 힌트, 랭킹을 지원하는 PWA.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Sudoku",
-  description: "스도쿠 웹앱 — Next.js 15 PWA",
+  description: SITE_DESCRIPTION,
+  keywords: ["스도쿠", "sudoku", "숫자 퍼즐", "퍼즐 게임", "무료 게임", "PWA"],
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -23,6 +29,21 @@ export const metadata: Metadata = {
   },
   icons: {
     apple: "/icons/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: SITE_URL,
+    siteName: "Sudoku",
+    title: "Sudoku",
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/icons/icon-512x512.png", width: 512, height: 512, alt: "Sudoku" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sudoku",
+    description: SITE_DESCRIPTION,
+    images: ["/icons/icon-512x512.png"],
   },
 };
 
