@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PartyPopper, Star, Play, Trophy, Home, Unlock } from "lucide-react";
 import { useGameStore } from "@/stores/game-store";
 import { useGuestRecordStore } from "@/stores/guest-record-store";
+import { useOfflineClearStore } from "@/stores/offline-clear-store";
 import { STAGE_RANGES } from "@/types/game";
 import { formatTime } from "./Timer";
 import { Button } from "@/components/ui/button";
@@ -161,6 +162,7 @@ const ClearModal = () => {
 
   // ── 기록 저장 ──
   const addGuestRecord = useGuestRecordStore((s) => s.addRecord);
+  const enqueueOfflineClear = useOfflineClearStore((s) => s.enqueue);
   const { mutate: saveGameClear } = useGameClear();
 
   // ── 계산된 값 ──
@@ -185,19 +187,29 @@ const ClearModal = () => {
 
     savedRef.current = true;
 
+    const payload = { stage, clearTime: timer, hintsUsed, stars };
+
     if (isAuthenticated) {
-      // 로그인 사용자 → 서버 저장 (POST /api/game/clear)
-      saveGameClear({ stage, clearTime: timer, hintsUsed, stars });
+      const offline = typeof navigator !== "undefined" && !navigator.onLine;
+      if (offline) {
+        // 오프라인 → 큐에 저장 (온라인 복귀 시 자동 전송)
+        enqueueOfflineClear(payload);
+      } else {
+        // 온라인 → 서버 저장. 전송 실패 시 큐로 폴백 (유실 방지)
+        saveGameClear(payload, {
+          onError: () => enqueueOfflineClear(payload),
+        });
+      }
     } else {
       // 비로그인 → 로컬 저장
-      addGuestRecord({ stage, clearTime: timer, hintsUsed, stars });
+      addGuestRecord(payload);
     }
 
     // 새 게임 시작 시 플래그 초기화
     if (!isComplete) {
       savedRef.current = false;
     }
-  }, [isComplete, isAuthenticated, stage, timer, hintsUsed, stars, addGuestRecord, saveGameClear]);
+  }, [isComplete, isAuthenticated, stage, timer, hintsUsed, stars, addGuestRecord, saveGameClear, enqueueOfflineClear]);
 
   // ── 핸들러 ──
   const handleNextStage = useCallback(() => {
