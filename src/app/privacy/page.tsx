@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const UPDATED_AT = "2026년 7월 23일";
-const CONTACT_EMAIL = "your-email@example.com"; // TODO: 실제 문의 연락처로 교체
+const CONTACT_EMAIL = "leeji.circle@gmail.com";
 
 const PrivacyPage = () => {
   return (
