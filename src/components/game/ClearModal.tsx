@@ -183,7 +183,14 @@ const ClearModal = () => {
   const savedRef = useRef(false);
 
   useEffect(() => {
-    if (!isComplete || savedRef.current) return;
+    // 새 퍼즐 시작(isComplete=false) 시 플래그 리셋.
+    // handleNextStage는 같은 라우트라 모달이 언마운트되지 않으므로
+    // 여기서 리셋하지 않으면 다음 클리어가 저장되지 않는다.
+    if (!isComplete) {
+      savedRef.current = false;
+      return;
+    }
+    if (savedRef.current) return;
 
     savedRef.current = true;
 
@@ -203,11 +210,6 @@ const ClearModal = () => {
     } else {
       // 비로그인 → 로컬 저장
       addGuestRecord(payload);
-    }
-
-    // 새 게임 시작 시 플래그 초기화
-    if (!isComplete) {
-      savedRef.current = false;
     }
   }, [isComplete, isAuthenticated, stage, timer, hintsUsed, stars, addGuestRecord, saveGameClear, enqueueOfflineClear]);
 
