@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { Grid3X3, AlertCircle } from "lucide-react";
@@ -119,6 +120,16 @@ const LoginContent = () => {
           {/* 하단 캡션 */}
           <p className="mt-6 text-center text-xs text-muted-foreground">
             게임은 로그인 없이도 즐길 수 있어요
+          </p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            로그인 시{" "}
+            <Link
+              href="/privacy"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              개인정보처리방침
+            </Link>
+            에 동의하게 됩니다
           </p>
         </div>
       </div>
