@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { User, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useAuth } from "@/hooks";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,7 +14,11 @@ import {
 
 /** 로그인/프로필 아이콘 버튼 — 세션 상태에 따라 변형 */
 const AuthButton = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+
+  // 세션 로딩 중 — 아바타와 동일한 크기의 빈 자리만 잡아 "로그인" 버튼 깜빡임(FOUC) 방지
+  // ponytail: 스켈레톤 애니메이션 생략, 로딩이 체감될 만큼 길어지면 추가
+  if (isLoading) return <div className="size-11" aria-hidden="true" />;
 
   if (isAuthenticated && user) {
     const name = user.nickname ?? user.name ?? "";
@@ -66,13 +71,13 @@ const AuthButton = () => {
   }
 
   return (
-    <Link
-      href="/login"
-      className="flex size-11 items-center justify-center text-muted-foreground transition-colors duration-100 hover:text-foreground"
+    <Button
+      render={<Link href="/login" />}
+      className="h-11 rounded-full px-4"
       aria-label="로그인"
     >
-      <User className="size-6" />
-    </Link>
+      로그인
+    </Button>
   );
 };
 
