@@ -9,7 +9,7 @@ import { THEME_COLOR, THEME_INIT_SCRIPT } from "@/lib/theme";
 /** 스크립트를 최소 DOM 스텁 위에서 실행하고 결과 상태를 돌려준다 */
 const run = (opts: { stored?: string | null; systemDark: boolean; throwOnRead?: boolean }) => {
   const classes = new Set<string>();
-  let metaContent = THEME_COLOR.light;
+  let metaContent: string = THEME_COLOR.light;
 
   const localStorage = {
     getItem: () => {
