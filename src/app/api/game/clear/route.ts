@@ -4,7 +4,7 @@
  * 로그인 사용자의 게임 클리어 기록을 저장한다.
  *
  * - 인증 필수 (requireAuth)
- * - 요청 본문: { stage, clearTime, hintsUsed, stars }
+ * - 요청 본문: { stage, clearTime, hintsUsed, stars, completedAt? }
  * - 유효성 검증 후 GameRecord 테이블에 저장
  * - 개인 최고 기록 여부를 함께 응답
  *
@@ -13,6 +13,7 @@
 
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/helpers";
+import { validateCompletedAt } from "@/lib/api/guest";
 import { prisma } from "@/lib/prisma";
 import type { ApiResponse } from "@/types/api";
 import type { GameClearRequest, GameClearResponseData } from "@/types/ranking";
@@ -84,6 +85,14 @@ const validateClearRequest = (
     };
   }
 
+  // completedAt: 선택 필드 — 없으면 서버 수신 시각으로 폴백 (하위 호환)
+  if (b.completedAt !== undefined) {
+    const completedAtError = validateCompletedAt(b.completedAt);
+    if (completedAtError) {
+      return { valid: false, error: completedAtError };
+    }
+  }
+
   return {
     valid: true,
     data: {
@@ -91,6 +100,7 @@ const validateClearRequest = (
       clearTime: b.clearTime,
       hintsUsed: b.hintsUsed,
       stars: b.stars,
+      completedAt: b.completedAt as string | undefined,
     },
   };
 };
@@ -127,7 +137,7 @@ export const POST = async (req: Request) => {
     );
   }
 
-  const { stage, clearTime, hintsUsed, stars } = validation.data;
+  const { stage, clearTime, hintsUsed, stars, completedAt } = validation.data;
   const userId = session.user.id;
 
   try {
@@ -139,7 +149,8 @@ export const POST = async (req: Request) => {
         clearTime,
         hintsUsed,
         stars,
-        completedAt: new Date(),
+        // 클라이언트가 실제 클리어 시각을 보내면 그 값, 없으면 서버 수신 시각
+        completedAt: completedAt ? new Date(completedAt) : new Date(),
       },
       select: { id: true },
     });
