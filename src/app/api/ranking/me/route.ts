@@ -2,7 +2,7 @@
  * GET /api/ranking/me
  *
  * 로그인 사용자의 스테이지별 최고 기록을 조회한다.
- * 각 스테이지의 최단 클리어 시간 + 플레이 횟수를 반환.
+ * (userId, stage)당 1행만 보관하므로 저장된 행이 곧 최고 기록이다.
  *
  * - 인증 필수 (requireAuth)
  *
@@ -28,37 +28,11 @@ export const GET = async () => {
   const userId = session.user.id;
 
   try {
-    // ── 2. 스테이지별 집계 (최소 clearTime + 플레이 횟수) ──
-    const stageStats = await prisma.gameRecord.groupBy({
-      by: ["stage"],
-      where: { userId },
-      _min: { clearTime: true },
-      _count: { id: true },
-      orderBy: { stage: "asc" },
-    });
-
-    if (stageStats.length === 0) {
-      const responseData: MyRankingResponseData = {
-        records: [],
-        clearedStages: 0,
-        totalPlays: 0,
-      };
-      return NextResponse.json<ApiResponse<MyRankingResponseData>>(
-        { success: true, data: responseData },
-        { status: 200 },
-      );
-    }
-
-    // ── 3. 각 스테이지 최고 기록 상세 조회 ──
+    // ── 2. 스테이지별 최고 기록 조회 ──
+    // (userId, stage)당 1행이므로 그대로 읽으면 스테이지별 최고 기록이다.
     const bestRecords = await prisma.gameRecord.findMany({
-      where: {
-        userId,
-        OR: stageStats.map((s) => ({
-          stage: s.stage,
-          clearTime: s._min.clearTime!,
-        })),
-      },
-      orderBy: [{ stage: "asc" }, { completedAt: "asc" }],
+      where: { userId },
+      orderBy: { stage: "asc" },
       select: {
         stage: true,
         clearTime: true,
@@ -68,35 +42,17 @@ export const GET = async () => {
       },
     });
 
-    // 스테이지별 중복 제거 (같은 최고 시간이 여러 개면 가장 먼저 달성한 것)
-    const seenStages = new Set<number>();
-    const uniqueBests = bestRecords.filter((r) => {
-      if (seenStages.has(r.stage)) return false;
-      seenStages.add(r.stage);
-      return true;
-    });
-
-    // playCount 맵 생성
-    const playCountMap = new Map(
-      stageStats.map((s) => [s.stage, s._count.id]),
-    );
-
-    // ── 4. 응답 데이터 조합 ──
-    const records: PersonalBestRecord[] = uniqueBests.map((r) => ({
+    const records: PersonalBestRecord[] = bestRecords.map((r) => ({
       stage: r.stage,
       clearTime: r.clearTime,
       hintsUsed: r.hintsUsed,
       stars: r.stars,
       completedAt: r.completedAt.toISOString(),
-      playCount: playCountMap.get(r.stage) ?? 1,
     }));
-
-    const totalPlays = stageStats.reduce((sum, s) => sum + s._count.id, 0);
 
     const responseData: MyRankingResponseData = {
       records,
-      clearedStages: stageStats.length,
-      totalPlays,
+      clearedStages: records.length,
     };
 
     return NextResponse.json<ApiResponse<MyRankingResponseData>>(

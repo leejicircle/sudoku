@@ -2,7 +2,7 @@
  * GET /api/ranking?stage=1&limit=20
  *
  * 특정 스테이지의 랭킹(최단 클리어 시간)을 조회한다.
- * 사용자별 최고 기록만 추출하여 순위를 매긴다.
+ * 저장 시점에 (userId, stage)당 최고 기록 1행만 유지되므로 단순 정렬 조회로 충분하다.
  *
  * - 인증 불필요 (공개 API)
  * - 쿼리 파라미터: stage (필수, 1~50), limit (선택, 기본 20, 최대 100)
@@ -49,82 +49,41 @@ export const GET = async (req: NextRequest) => {
     : RANKING_DEFAULT_LIMIT;
 
   try {
-    // ── 2. 사용자별 최고 기록 조회 ──
-    // 각 사용자의 해당 스테이지 최단 클리어 시간 기록을 가져온다.
-    // Prisma에서 groupBy + min 후 상세 정보를 가져오는 2단계 쿼리.
-
-    // 2-1. 사용자별 최소 clearTime 추출
-    const bestTimes = await prisma.gameRecord.groupBy({
-      by: ["userId"],
-      where: { stage },
-      _min: { clearTime: true },
-    });
-
-    if (bestTimes.length === 0) {
-      const responseData: RankingResponseData = {
-        stage,
-        rankings: [],
-        totalPlayers: 0,
-      };
-      return NextResponse.json<ApiResponse<RankingResponseData>>(
-        { success: true, data: responseData },
-        { status: 200 },
-      );
-    }
-
-    // 2-2. 각 사용자의 최고 기록 상세 정보 조회
-    const records = await prisma.gameRecord.findMany({
-      where: {
-        stage,
-        OR: bestTimes.map((bt) => ({
-          userId: bt.userId,
-          clearTime: bt._min.clearTime!,
-        })),
-      },
-      // 같은 clearTime 기록이 복수일 때 가장 먼저 달성한 것 선택
-      orderBy: [{ clearTime: "asc" }, { completedAt: "asc" }],
-      select: {
-        userId: true,
-        clearTime: true,
-        hintsUsed: true,
-        stars: true,
-        completedAt: true,
-        user: {
-          select: {
-            nickname: true,
-            name: true,
-            image: true,
-          },
+    // ── 2. 랭킹 조회 ──
+    // (userId, stage)당 1행이므로 정렬 후 자르면 그대로 랭킹이 된다.
+    const [records, totalPlayers] = await Promise.all([
+      prisma.gameRecord.findMany({
+        where: { stage },
+        // 같은 clearTime이면 먼저 달성한 사람이 상위
+        orderBy: [{ clearTime: "asc" }, { completedAt: "asc" }],
+        take: limit,
+        select: {
+          userId: true,
+          clearTime: true,
+          hintsUsed: true,
+          stars: true,
+          completedAt: true,
+          user: { select: { nickname: true, name: true, image: true } },
         },
-      },
-    });
+      }),
+      prisma.gameRecord.count({ where: { stage } }),
+    ]);
 
-    // 2-3. 사용자별 중복 제거 (가장 빠른 기록만)
-    const seenUsers = new Set<string>();
-    const uniqueRecords = records.filter((r) => {
-      if (seenUsers.has(r.userId)) return false;
-      seenUsers.add(r.userId);
-      return true;
-    });
-
-    // 2-4. limit 적용 + 순위 부여
-    const rankings: RankingEntry[] = uniqueRecords
-      .slice(0, limit)
-      .map((r, index) => ({
-        rank: index + 1,
-        userId: r.userId,
-        displayName: r.user.nickname ?? r.user.name ?? "익명",
-        profileImage: r.user.image,
-        clearTime: r.clearTime,
-        hintsUsed: r.hintsUsed,
-        stars: r.stars,
-        completedAt: r.completedAt.toISOString(),
-      }));
+    const rankings: RankingEntry[] = records.map((r, index) => ({
+      rank: index + 1,
+      userId: r.userId,
+      displayName: r.user.nickname ?? r.user.name ?? "익명",
+      profileImage: r.user.image,
+      clearTime: r.clearTime,
+      hintsUsed: r.hintsUsed,
+      stars: r.stars,
+      completedAt: r.completedAt.toISOString(),
+    }));
 
     const responseData: RankingResponseData = {
       stage,
       rankings,
-      totalPlayers: bestTimes.length,
+      totalPlayers,
     };
 
     return NextResponse.json<ApiResponse<RankingResponseData>>(

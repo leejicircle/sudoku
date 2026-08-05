@@ -42,7 +42,7 @@ export interface GuestSyncResultItem {
    * 동기화 상태
    * - synced: DB에 저장 완료
    * - pending: 유효성 검증 통과, DB 저장 대기 (Epic #6 연결 전)
-   * - duplicate: 중복 스킵
+   * - duplicate: 중복 스킵 (같은 ID 재전송, 또는 같은 스테이지에 더 빠른 기록이 있어 밀림)
    * - invalid: 유효성 검증 실패
    */
   status: "synced" | "pending" | "duplicate" | "invalid";

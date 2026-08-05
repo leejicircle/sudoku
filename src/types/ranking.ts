@@ -31,11 +31,11 @@ export interface GameClearRequest {
 
 /** POST /api/game/clear 응답 데이터 */
 export interface GameClearResponseData {
-  /** 저장된 기록 ID */
+  /** 해당 스테이지의 기록 행 ID ((userId, stage)당 1행) */
   recordId: string;
-  /** 해당 스테이지 개인 최고 기록 여부 */
+  /** 이번 기록이 기존 최고 기록을 갱신했는지 */
   isPersonalBest: boolean;
-  /** 해당 스테이지 개인 최고 클리어 시간 (초) */
+  /** 갱신 후의 개인 최고 클리어 시간 (초) */
   personalBestTime: number;
 }
 
@@ -83,10 +83,8 @@ export interface PersonalBestRecord {
   hintsUsed: number;
   /** 별점 */
   stars: number;
-  /** 클리어 일시 (ISO 8601) */
+  /** 최고 기록 달성 일시 (ISO 8601) */
   completedAt: string;
-  /** 해당 스테이지 플레이 횟수 */
-  playCount: number;
 }
 
 /** GET /api/ranking/me 응답 데이터 */
@@ -95,8 +93,6 @@ export interface MyRankingResponseData {
   records: PersonalBestRecord[];
   /** 클리어한 스테이지 총 수 */
   clearedStages: number;
-  /** 전체 플레이 횟수 */
-  totalPlays: number;
 }
 
 // ─── 상수 ────────────────────────────────────────────
