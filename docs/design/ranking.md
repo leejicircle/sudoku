@@ -2,6 +2,79 @@
 
 > 난이도별 클리어 기록을 순위로 표시하는 페이지.
 
+> **v2 — 페이퍼 톤 (2026-08).** 아래 §0을 먼저 적용한 뒤 나머지 절을 읽는다.
+> 근거는 `design-system.md` §14.4 / §14.5.
+
+---
+
+## 0. v2 변경 요약 (페이퍼 톤)
+
+**은유: 화려한 시상대가 아니라 게시판에 붙은 성적표.**
+
+### 0.1 포디움 (§4 대체)
+
+**삭제 2건** — `RankingPodium.tsx`의 장식 레이어:
+- 상단 그라데이션 액센트 라인 (`bg-gradient-to-r from-transparent via-sudoku-primary/60`)
+- 배경 글로우 (`bg-gradient-to-br from-warning/30 ... blur-2xl`)
+
+| 항목 | v1 | **v2** |
+|------|-----|--------|
+| 컨테이너 | `rounded-2xl bg-card/80 shadow-lg backdrop-blur-md` | `rounded-[var(--radius-lg)] border border-border bg-card` |
+| 상단 | 그라데이션 헤어라인 | `border-b border-border` + `TOP 3` 모노 캡션 (`tracking-[0.2em]`, `uppercase`) |
+| 순위 표시 | 🥇🥈🥉 이모지 | **`#1` `#2` `#3`** — `font-mono text-muted-foreground` |
+| 아바타 테두리 | 금/은/동 리터럴 색 | **잉크 명도 사다리** (아래) |
+| 1위 강조 | 크기 56px + 금색 | 크기 56px + `font-bold` + 테두리 2px — **색 아님** |
+
+```ts
+// ranking-utils.ts
+// MEDAL_EMOJI 삭제 (이모지는 페이퍼 톤과 충돌)
+export const MEDAL_COLORS = {
+  1: "var(--foreground)",         // 가장 진한 잉크
+  2: "var(--muted-foreground)",
+  3: "var(--board-border-thin)",
+} as const;
+```
+
+> v1의 `MEDAL_COLORS`는 리터럴 oklch 라이트 전용 값이라 다크 모드에서 대비가 무너졌다.
+> `var()` 참조로 바꾸면 두 모드에서 자동 반전된다 — 접근성 버그 동시 해소.
+
+### 0.2 난이도 필터 탭 (§3.1 인디케이터 항목 대체)
+
+| 속성 | v1 | **v2** |
+|------|-----|--------|
+| 활성 인디케이터 | 하단 2px, `--difficulty-*` 난이도별 색 | **하단 2px `bg-foreground`** (잉크 밑줄, 전 탭 동일) |
+| 활성 탭 텍스트 | `--foreground` weight 600 | 유지 |
+| 비활성 탭 텍스트 | `--muted-foreground` | 유지 (5.48:1) |
+
+`ranking-utils.ts`의 `DifficultyTab.activeClass` 필드는 값이 전부 같아지므로 **삭제**하고
+인디케이터를 컴포넌트에 하드코딩한다.
+
+### 0.3 랭킹 리스트
+
+| 항목 | **v2** |
+|------|--------|
+| 행 구분 | `border-b border-border` 1px 괘선 (성적표) |
+| 내 순위 하이라이트 | 배경색 대신 **`border-l-[3px] border-l-foreground` + `font-semibold`** |
+| 순위 숫자 | `font-mono`, `tabular-nums` |
+| 기록 시간 | `font-mono`, `tabular-nums` |
+
+### 0.4 비로그인 배너 (§2 대체)
+
+**삭제**: `bg-gradient-to-r from-sudoku-primary/15 via-sudoku-primary/10 to-transparent`, `backdrop-blur-md`.
+
+| 속성 | **v2** |
+|------|--------|
+| 컨테이너 | `rounded-[var(--radius-md)] border border-border bg-card` |
+| 좌측 강조 | `border-l-[3px] border-l-sudoku-primary` |
+| 아이콘 | `LogIn` 16px, `text-muted-foreground`, **배경 박스 없음** |
+| 텍스트 | 14px, `--foreground` (15.02:1) |
+| CTA | `rounded-[var(--radius-sm)]`, `bg-sudoku-primary` + `text-sudoku-primary-foreground` (7.97:1) |
+
+### 0.5 빈 상태 / 에러
+
+`RankingEmpty` · `RankingError` — 컬러 일러스트나 그라데이션 금지.
+아이콘 1개(`text-muted-foreground`) + 문구 + Ghost 버튼. 배경 없음.
+
 ---
 
 ## 1. 와이어프레임 (375px 모바일)

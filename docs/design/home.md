@@ -2,6 +2,77 @@
 
 > 앱의 메인 진입점. 난이도를 선택하여 게임을 시작하는 화면.
 
+> **v2 — 페이퍼 톤 (2026-08).** 아래 §0을 먼저 적용한 뒤 나머지 절을 읽는다.
+> 토큰/장식 근거는 `design-system.md` §14 참조.
+
+---
+
+## 0. v2 변경 요약 (페이퍼 톤)
+
+### 0.1 히어로
+
+| 요소 | v1 | **v2** |
+|------|-----|--------|
+| 배경 | `.home-mesh-bg` 메시 그라데이션 4겹 + `.sudoku-grid-bg` | **`.paper-bg` 모눈종이 1겹** |
+| Eyebrow | `Sparkles` 아이콘 + pill 뱃지 + `backdrop-blur` | **간행 캡션** — `DAILY PUZZLE · NO.{n}`, `font-mono`, `tracking-[0.2em]`, `uppercase`, `text-muted-foreground`, 배경·보더·아이콘 없음 |
+| 타이틀 | `S · U · D · O · K · U` 시머 그라데이션 | **`SUDOKU`** 단색 `text-foreground`, 세리프(선택), `tracking-[0.14em]`, 애니메이션 없음 |
+| 타이틀 밑줄 | — | 선택: `border-b border-border` 1px 괘선 |
+
+### 0.2 난이도 카드 — 색 → pip 게이지
+
+**난이도는 색으로 구분하지 않는다.** `.gradient-*` / `.card-glow-*` 를 전부 삭제하고
+좌측 사이드바를 **종이 + 세로 괘선 + 정사각 pip 게이지**로 바꾼다.
+
+```
+┌────────┬──────────────────────────────────┐
+│   01   │  쉬움                  ⏱ 03:24  │
+│        │  EASY                  ★★★      │
+│ ■□□□   │                                  │
+└────────┴──────────────────────────────────┘
+   ↑ 세로 괘선(border-r border-border)이 구분, 색면 아님
+```
+
+| 난이도 | pip | `level` | 톤 토큰 |
+|--------|-----|:-------:|---------|
+| 쉬움 | `■□□□` | 1 | `--difficulty-easy` |
+| 보통 | `■■□□` | 2 | `--difficulty-medium` |
+| 어려움 | `■■■□` | 3 | `--difficulty-hard` |
+| 전문가 | `■■■■` | 4 | `--difficulty-expert` |
+
+**pip 명세**: 6×6px, 간격 3px, 가로 1행, `rounded-none`.
+채움 = `bg-current`(부모에 `toneClass`), 빈 칸 = `border border-current opacity-40`.
+컨테이너에 `aria-hidden` — 난이도는 카드 `aria-label` 텍스트가 전달한다.
+
+> **★를 쓰지 않는 이유**: ★는 카드 우측의 **클리어 등급(3개)** 에 이미 쓰인다.
+> 난이도까지 ★로 표시하면 한 카드 안에 의미가 다른 별이 두 벌 생긴다.
+
+`difficulty-data.ts`에서 `gradientClass` · `glowClass` · `icon`(Sprout/Flame/Zap/Crown) 3필드를
+삭제하고 `level: 1|2|3|4` + `toneClass: string` 2필드로 교체한다.
+
+### 0.3 카드 스타일 (§3.2 를 아래로 대체)
+
+| 속성 | v1 | **v2** |
+|------|-----|--------|
+| 배경 | `bg-card/80 backdrop-blur-sm` | **`bg-card`** (알파·블러 제거) |
+| 보더 | `border-border/60` | **`border-border`** 실선 |
+| 모서리 | `--radius-xl` = 14px | 동일 토큰 → 자동 8.4px |
+| 그림자 | `shadow-sm` → 호버 `shadow-xl` | `--shadow-sm` 고정 |
+| 호버 | `-translate-y-1` + 컬러 글로우 | **`hover:bg-accent`** 만 |
+| 활성 | `active:scale-[0.99]` | 유지 |
+| 잠금 | `opacity-70` | **`.cell-hatch` 빗금 + `text-muted-foreground`** |
+| 좌측 사이드바 | 컬러 그라데이션 면 | 배경 없음 + `border-r border-border` |
+| 호버 화살표 | `bg-foreground` 원형 배지 | `rounded-none`, 배경 없이 `text-muted-foreground` |
+
+### 0.4 이어하기 배너 (§4 를 아래로 대체)
+
+| 속성 | **v2** |
+|------|--------|
+| 배경 | `--card` (그라데이션·알파 없음) |
+| 보더 | `1px solid --border` |
+| 좌측 강조 | `border-l-[3px] border-l-sudoku-primary` |
+| 모서리 | `--radius-md` |
+| CTA | Ghost, `--sudoku-primary` 텍스트 (7.69:1) |
+
 ---
 
 ## 1. 와이어프레임 (375px 모바일)

@@ -12,15 +12,13 @@ export interface DifficultyTab {
   label: string;
   /** 대표 스테이지 번호 (API 조회용) */
   stage: number;
-  /** 활성 인디케이터 Tailwind 색상 클래스 */
-  activeClass: string;
 }
 
 export const DIFFICULTY_TABS: readonly DifficultyTab[] = [
-  { id: "easy", label: "쉬움", stage: 1, activeClass: "bg-difficulty-easy" },
-  { id: "medium", label: "보통", stage: 11, activeClass: "bg-difficulty-medium" },
-  { id: "hard", label: "어려움", stage: 21, activeClass: "bg-difficulty-hard" },
-  { id: "expert", label: "전문가", stage: 31, activeClass: "bg-difficulty-expert" },
+  { id: "easy", label: "쉬움", stage: 1 },
+  { id: "medium", label: "보통", stage: 11 },
+  { id: "hard", label: "어려움", stage: 21 },
+  { id: "expert", label: "전문가", stage: 31 },
 ] as const;
 
 // ─── 시간 포맷 ────────────────────────────────────────
@@ -43,16 +41,17 @@ export const formatDate = (isoString: string): string => {
   return `${y}.${m}.${day}`;
 };
 
-// ─── 메달 색상 ────────────────────────────────────────
+// ─── 순위 테두리 ────────────────────────────────────────
 
+/**
+ * 아바타 테두리 — 금/은/동 대신 잉크 명도 사다리.
+ *
+ * 리터럴 oklch로 두면 라이트 전용 값이 되어 다크 모드에서 대비가 무너진다.
+ * `var()` 참조로 두면 두 모드에서 자동 반전된다.
+ */
 export const MEDAL_COLORS = {
-  1: "oklch(0.80 0.15 85)",   // 금
-  2: "oklch(0.75 0.02 250)",  // 은
-  3: "oklch(0.65 0.10 55)",   // 동
+  1: "var(--foreground)",
+  2: "var(--muted-foreground)",
+  3: "var(--board-border-thin)",
 } as const;
 
-export const MEDAL_EMOJI = {
-  1: "\uD83E\uDD47",
-  2: "\uD83E\uDD48",
-  3: "\uD83E\uDD49",
-} as const;

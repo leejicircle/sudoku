@@ -4,6 +4,26 @@
 
 ---
 
+## 0. v2 변경 요약 (페이퍼 톤, 2026-08)
+
+**목표: 문제집을 펼친 한 페이지.** 셀 상태는 `cell-states.md` v2, 토큰은 `design-system.md` §13.
+
+| 요소 | v1 | **v2** |
+|------|-----|--------|
+| 보드 배경 | 흰색 | 종이색 `--board-bg` |
+| 굵은 괘선 | `--board-border` 3px 링 | 값 교체(잉크) + `--shadow-board` 링 **3px → 2px** |
+| 얇은 괘선 | `oklch(0.80 0 0)` (2.24:1 ❌) | **`oklch(0.64 0.008 80)` (3.02:1 ✅)** — 괘선은 필수 구조 정보 |
+| 셀 모서리 | 0 | 0 (유지) |
+| 숫자패드 버튼 | `bg-card` + 그림자만 | **`bg-card` + `border border-border` 추가** — 종이 위에서 그림자만으론 경계가 안 보인다 |
+| 숫자패드 그림자 | `0 2px 4px` 흐림 | `0 1px 0` 오프셋 (평평한 인쇄) |
+| 숫자패드 비활성 | `opacity-30` | `opacity-35` + `bg-muted` |
+| 도구바 아이콘 | `strokeWidth` 2~2.5 | **1.75** (인쇄 라인 두께) |
+| 난이도 라벨(GameHeader) | 무지개 `text-difficulty-*` | 동일 토큰, 값이 잉크 명도 사다리로 교체됨 → 코드 변경 없음 |
+| `PauseOverlay` 블러 | `blur(12px)` | **유지** — 퍼즐을 가리는 기능적 블러이므로 예외 |
+| `board-complete-celebrate` | scale + `filter: brightness(1.1)` | **brightness 스텝 제거**, scale만. 종이는 빛나지 않는다 |
+
+---
+
 ## 1. 와이어프레임 (375px 모바일)
 
 ```

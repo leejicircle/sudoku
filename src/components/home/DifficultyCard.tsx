@@ -28,35 +28,51 @@ const UnlockedInfo = ({
   stars: number | null;
 }) => (
   <div className="flex flex-col items-end gap-1.5">
-    <div className="flex items-center gap-1.5 rounded-full bg-background/60 px-2 py-0.5 backdrop-blur-sm">
-      <Clock className="size-3 text-muted-foreground" />
-      <span className="font-mono text-(length:--text-small) font-medium text-foreground">
+    <div className="flex items-center gap-1.5">
+      <Clock className="size-3 text-muted-foreground" strokeWidth={1.75} />
+      <span className="font-mono tabular-nums text-(length:--text-small) font-medium text-foreground">
         {bestTime !== null ? formatTime(bestTime) : "—"}
       </span>
     </div>
 
     <div className="flex items-center gap-0.5">
-      {stars !== null
-        ? Array.from({ length: 3 }, (_, i) => (
-            <Star
-              key={i}
-              className={`size-3.5 ${
-                i < stars
-                  ? "fill-warning text-warning"
-                  : "text-muted-foreground/30"
-              }`}
-            />
-          ))
-        : Array.from({ length: 3 }, (_, i) => (
-            <Star key={i} className="size-3.5 text-muted-foreground/30" />
-          ))}
+      {Array.from({ length: 3 }, (_, i) => (
+        <Star
+          key={i}
+          strokeWidth={1.75}
+          className={`size-3.5 ${
+            i < (stars ?? 0) ? "fill-warning text-warning" : "text-muted-foreground"
+          }`}
+        />
+      ))}
     </div>
+  </div>
+);
+
+/**
+ * 난이도 pip 게이지 (■■□□)
+ *
+ * 난이도를 색이 아니라 **개수**로 전달한다.
+ * ★은 카드 우측 클리어 등급에 이미 쓰이므로 정사각 pip을 쓴다.
+ * 난이도 정보는 카드 aria-label이 전달하므로 aria-hidden.
+ */
+const LevelPips = ({ level }: { level: 1 | 2 | 3 | 4 }) => (
+  <div className="flex gap-[3px]" aria-hidden="true">
+    {Array.from({ length: 4 }, (_, i) => (
+      <span
+        key={i}
+        className={
+          "size-1.5 rounded-none " +
+          (i < level ? "bg-current" : "border border-current opacity-40")
+        }
+      />
+    ))}
   </div>
 );
 
 const LockedInfo = ({ condition }: { condition: string }) => (
   <div className="flex flex-col items-end gap-1">
-    <Lock className="size-5 text-muted-foreground" />
+    <Lock className="size-5 text-muted-foreground" strokeWidth={1.75} />
     <span className="text-(length:--text-small) text-muted-foreground">
       {condition}
     </span>
@@ -76,7 +92,6 @@ const DifficultyCard = ({
     onPress(difficulty);
   };
 
-  const { gradientClass, glowClass } = difficulty;
   const orderLabel = String(index + 1).padStart(2, "0");
 
   return (
@@ -90,40 +105,27 @@ const DifficultyCard = ({
       }
       className={
         "group relative flex h-[120px] md:h-[140px] w-full items-stretch overflow-hidden " +
-        "rounded-[var(--radius-xl)] border border-border/60 " +
-        "bg-card/80 backdrop-blur-sm " +
-        "transition-all duration-(--duration-normal) " +
+        "rounded-[var(--radius-xl)] border border-border bg-card " +
+        "transition-colors duration-(--duration-normal) " +
         "cursor-pointer text-left " +
         (isLocked
-          ? "opacity-70 "
-          : "shadow-sm hover:-translate-y-1 hover:shadow-xl active:translate-y-0 active:scale-[0.99] " +
-            glowClass +
-            " ")
+          ? "cell-hatch text-muted-foreground "
+          : "shadow-sm hover:bg-accent active:scale-[0.99] ")
       }
     >
-      {/* 좌측 컬러 그라디언트 사이드바 */}
+      {/* 좌측 사이드바 — 색면이 아니라 세로 괄선이 구분한다 */}
       <div
         className={
-          "relative flex w-[72px] shrink-0 flex-col items-center justify-center gap-1.5 md:w-[88px] " +
-          (isLocked ? "bg-muted" : gradientClass)
+          "relative flex w-[72px] shrink-0 flex-col items-center justify-center gap-2 " +
+          "border-r border-border md:w-[88px] " +
+          (isLocked ? "text-muted-foreground" : difficulty.toneClass)
         }
         aria-hidden="true"
       >
-        <span
-          className={
-            "font-mono text-(length:--text-small) font-bold tracking-wider " +
-            (isLocked ? "text-muted-foreground" : "text-white/80")
-          }
-        >
-          #{orderLabel}
+        <span className="font-mono tabular-nums text-(length:--text-small) tracking-wider text-muted-foreground">
+          {orderLabel}
         </span>
-        <difficulty.icon
-          className={
-            "size-7 md:size-8 " +
-            (isLocked ? "text-muted-foreground" : "text-white drop-shadow-sm")
-          }
-          strokeWidth={2.25}
-        />
+        <LevelPips level={difficulty.level} />
       </div>
 
       {/* 콘텐츠 영역 */}
@@ -140,9 +142,7 @@ const DifficultyCard = ({
           <span
             className={
               "font-mono text-(length:--text-small) tracking-wider uppercase " +
-              (isLocked
-                ? "text-muted-foreground/70"
-                : "text-muted-foreground")
+              "text-muted-foreground"
             }
           >
             {difficulty.labelEn}
@@ -161,12 +161,12 @@ const DifficultyCard = ({
             aria-hidden="true"
             className={
               "absolute right-3 top-3 flex size-7 items-center justify-center " +
-              "rounded-full bg-foreground/0 text-foreground/0 " +
-              "transition-all duration-(--duration-normal) " +
-              "group-hover:bg-foreground group-hover:text-background"
+              "rounded-none text-transparent " +
+              "transition-colors duration-(--duration-normal) " +
+              "group-hover:text-muted-foreground"
             }
           >
-            <ArrowUpRight className="size-4" />
+            <ArrowUpRight className="size-4" strokeWidth={1.75} />
           </div>
         )}
       </div>

@@ -5,6 +5,24 @@
 
 ---
 
+## 0. v2 변경 요약 (페이퍼 톤, 2026-08)
+
+**유리(glassmorphism)를 걷어내고 종이로 되돌린다.** 근거: `design-system.md` §14.1 / §14.6.
+
+| 요소 | v1 | **v2** |
+|------|-----|--------|
+| Header 배경 | `bg-background/70 backdrop-blur-xl` | **`bg-background` + `border-b border-border`** |
+| BottomNav 배경 | 반투명 + 블러 | **`bg-background` + `border-t border-border`** |
+| BottomNav 활성 표시 | 아이콘 색상 변경 | **상단 2px 잉크 바(`bg-foreground`) + `font-semibold`** + 아이콘 `text-foreground` |
+| BottomNav 비활성 | — | `text-muted-foreground` (5.48:1) |
+| 앰비언트 배경 | `.home-mesh-bg` + `.sudoku-grid-bg` 2겹 | **`.paper-bg` 1겹** (모눈종이 24px) |
+| 로고 | `SUDOKU` + 그라데이션 점 | `SUDOKU` 단색 잉크, 점 삭제 |
+
+> 블러 제거는 톤뿐 아니라 **모바일 스크롤 성능**에도 이득이다
+> (sticky + `backdrop-filter`는 매 프레임 재합성을 유발한다).
+
+---
+
 ## 1. 전체 레이아웃 구조
 
 ### 1.1 와이어프레임

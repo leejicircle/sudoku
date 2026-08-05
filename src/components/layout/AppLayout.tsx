@@ -61,18 +61,12 @@ const AppLayout = ({
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-hidden">
-      {/* ── 전역 ambient 배경 (게임 외) ── */}
+      {/* ── 전역 모눈종이 배경 (게임 외) ── */}
       {showAmbientBg && (
-        <>
-          <div
-            aria-hidden="true"
-            className="home-mesh-bg pointer-events-none absolute inset-0 -z-10"
-          />
-          <div
-            aria-hidden="true"
-            className="sudoku-grid-bg pointer-events-none absolute inset-0 -z-10 opacity-50"
-          />
-        </>
+        <div
+          aria-hidden="true"
+          className="paper-bg pointer-events-none absolute inset-0 -z-10"
+        />
       )}
 
       <Header

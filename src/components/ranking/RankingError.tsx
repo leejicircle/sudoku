@@ -17,7 +17,7 @@ interface RankingErrorProps {
 const RankingError = ({ onRetry }: RankingErrorProps) => {
   return (
     <div className="flex flex-col items-center gap-3 py-16">
-      <AlertCircle className="size-12 text-muted-foreground" />
+      <AlertCircle className="size-12 text-muted-foreground" strokeWidth={1.75} />
       <p className="text-sm text-muted-foreground">
         랭킹을 불러올 수 없습니다
       </p>

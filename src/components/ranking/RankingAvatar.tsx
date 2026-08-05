@@ -16,11 +16,19 @@ interface RankingAvatarProps {
   name: string;
   /** 크기 (px) */
   size: number;
-  /** 보더 색상 (메달 색상 등) */
+  /** 보더 색상 (순위 잉크 사다리 등) */
   borderColor?: string;
+  /** 보더 두께 (px). 1위 강조는 색이 아니라 두께로 표현한다 */
+  borderWidth?: number;
 }
 
-const RankingAvatar = ({ image, name, size, borderColor }: RankingAvatarProps) => {
+const RankingAvatar = ({
+  image,
+  name,
+  size,
+  borderColor,
+  borderWidth = 1,
+}: RankingAvatarProps) => {
   const initial = name.charAt(0).toUpperCase() || "U";
   const sizeStyle = { width: size, height: size };
 
@@ -31,7 +39,7 @@ const RankingAvatar = ({ image, name, size, borderColor }: RankingAvatarProps) =
       )}
       style={{
         ...sizeStyle,
-        border: borderColor ? `2px solid ${borderColor}` : undefined,
+        border: borderColor ? `${borderWidth}px solid ${borderColor}` : undefined,
       }}
     >
       {image ? (

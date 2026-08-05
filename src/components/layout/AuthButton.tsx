@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/hooks";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -71,13 +72,15 @@ const AuthButton = () => {
   }
 
   return (
-    <Button
-      render={<Link href="/login" />}
-      className="h-11 rounded-full px-4"
-      aria-label="로그인"
+    // 실제로 /login으로 이동하는 네비게이션이므로 <a> 시맨틱이 맞다.
+    // Base UI Button은 nativeButton 기본 true라 <a>를 렌더하면 경고가 나므로,
+    // 스타일만 buttonVariants로 재사용한다 (shadcn link-as-button 패턴).
+    <Link
+      href="/login"
+      className={cn(buttonVariants(), "h-11 rounded-[var(--radius-sm)] px-4")}
     >
       로그인
-    </Button>
+    </Link>
   );
 };
 

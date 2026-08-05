@@ -21,14 +21,14 @@ const DesktopNav = () => {
             key={href}
             href={href}
             className={
-              "flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-all duration-(--duration-normal) " +
+              "flex h-9 items-center gap-1.5 rounded-[var(--radius-sm)] px-3.5 text-sm transition-colors duration-(--duration-normal) " +
               (isActive
-                ? "bg-sudoku-primary/12 text-sudoku-primary ring-1 ring-sudoku-primary/25"
-                : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground")
+                ? "bg-secondary font-semibold text-foreground"
+                : "font-medium text-muted-foreground hover:bg-accent hover:text-foreground")
             }
             aria-current={isActive ? "page" : undefined}
           >
-            <Icon className="size-4" />
+            <Icon className="size-4" strokeWidth={1.75} />
             {label}
           </Link>
         );

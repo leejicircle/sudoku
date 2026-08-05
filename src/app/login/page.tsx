@@ -54,10 +54,10 @@ const LoginContent = () => {
       <div className="flex flex-1 items-center justify-center px-6 py-10 lg:gap-16">
         {/* 좌측 일러스트 영역 (≥1024px만 표시) */}
         <div className="hidden lg:flex lg:flex-col lg:items-center lg:gap-6">
-          <div className="flex size-32 items-center justify-center rounded-3xl bg-gradient-to-br from-sudoku-primary/20 via-sudoku-primary/10 to-transparent backdrop-blur-sm">
+          <div className="flex size-32 items-center justify-center rounded-[var(--radius-lg)] border border-border bg-card">
             <Grid3X3
-              className="size-20 text-sudoku-primary"
-              strokeWidth={1.5}
+              className="size-20 text-muted-foreground"
+              strokeWidth={1.25}
             />
           </div>
           <div className="text-center">
@@ -73,15 +73,15 @@ const LoginContent = () => {
           className={
             "flex w-full flex-col items-center " +
             /* ≥768px: 카드 UI */
-            "md:w-100 md:rounded-2xl md:border md:border-border/60 md:bg-card/80 md:p-8 md:shadow-xl md:backdrop-blur-xl"
+            "md:w-100 md:rounded-[var(--radius-lg)] md:border md:border-border md:bg-card md:p-8"
           }
         >
           {/* 로고 & 텍스트 (PC 2컬럼에서는 숨김) */}
           <div className="flex flex-col items-center lg:hidden">
-            <div className="flex size-20 items-center justify-center rounded-2xl bg-gradient-to-br from-sudoku-primary/20 via-sudoku-primary/10 to-transparent">
+            <div className="flex size-20 items-center justify-center rounded-[var(--radius-lg)] border border-border bg-card">
               <Grid3X3
-                className="size-12 text-sudoku-primary"
-                strokeWidth={1.5}
+                className="size-12 text-muted-foreground"
+                strokeWidth={1.25}
               />
             </div>
             <h2 className="mt-4">
