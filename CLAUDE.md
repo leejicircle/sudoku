@@ -2,12 +2,12 @@
 
 ## 프로젝트 개요
 
-Next.js 15 기반 스도쿠 웹앱 (PWA). 개인 프로젝트이며 Claude Code 에이전트 팀으로 개발한다.
+Next.js 16 기반 스도쿠 웹앱 (PWA). 개인 프로젝트이며 Claude Code 에이전트 팀으로 개발한다.
 
 ## 기술 스택
 
-- **Framework**: Next.js 15 (App Router) + TypeScript 5.x
-- **Styling**: Tailwind CSS 3.x + shadcn/ui
+- **Framework**: Next.js 16 (App Router) + React 19 + TypeScript 5.x
+- **Styling**: Tailwind CSS 4.x + shadcn/ui
 - **State**: Zustand 5.x + TanStack React Query 5.x
 - **DB/ORM**: Prisma 6.x + Supabase PostgreSQL
 - **Auth**: Auth.js v5 (Google + Naver OAuth)
