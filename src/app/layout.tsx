@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Providers from "@/components/providers";
+import { THEME_COLOR, THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -52,7 +53,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#15120f",
+  // 단일 값(라이트)으로 두고, 다크일 때는 초기화 스크립트/ThemeToggle이 meta를 갱신한다.
+  themeColor: THEME_COLOR.light,
 };
 
 export default function RootLayout({
@@ -64,10 +66,16 @@ export default function RootLayout({
     <html
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      // 초기화 스크립트가 첫 페인트 전에 dark 클래스를 붙이므로 서버 HTML과 어긋난다 (의도된 것)
+      suppressHydrationWarning
     >
+      <head>
+        {/* 첫 페인트 전에 dark 클래스를 심어 새로고침 시 라이트 번쩍임(FOUC)을 막는다 */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
-          <Providers>{children}</Providers>
-        </body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

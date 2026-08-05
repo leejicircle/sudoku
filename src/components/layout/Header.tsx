@@ -4,6 +4,7 @@ import AppLogo from "./AppLogo";
 import BackButton from "./BackButton";
 import AuthButton from "./AuthButton";
 import DesktopNav from "./DesktopNav";
+import ThemeToggle from "./ThemeToggle";
 
 // ────────────────────────────────────────
 // Types
@@ -40,7 +41,12 @@ const resolveSlots = (
           </div>
         ),
         center: null,
-        right: <AuthButton />,
+        right: (
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <AuthButton />
+          </div>
+        ),
       };
 
     case "game":
@@ -63,7 +69,12 @@ const resolveSlots = (
             랭킹
           </span>
         ),
-        right: <AuthButton />,
+        right: (
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <AuthButton />
+          </div>
+        ),
       };
 
     case "login":
@@ -74,7 +85,8 @@ const resolveSlots = (
             로그인
           </span>
         ),
-        right: <div className="size-11" />,
+        // BackButton과 같은 44px이라 중앙 타이틀 정렬을 그대로 유지한다
+        right: <ThemeToggle />,
       };
   }
 };
