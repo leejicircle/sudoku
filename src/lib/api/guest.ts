@@ -21,6 +21,8 @@ import {
   MIN_STARS,
   MAX_STARS,
   GUEST_MAX_RECORDS,
+  MAX_COMPLETED_AT_FUTURE_SKEW_MS,
+  MAX_COMPLETED_AT_AGE_MS,
 } from "@/types/guest";
 
 // ─── 세션 판별 ────────────────────────────────────────
@@ -50,6 +52,40 @@ export const isAuthenticated = (
 };
 
 // ─── 유효성 검증 ──────────────────────────────────────
+
+/**
+ * 클리어 일시(ISO 8601 문자열) 검증 — 실패 시 사유, 통과 시 null
+ *
+ * /api/game/sync(게스트 기록)와 /api/game/clear(오프라인 큐 flush) 양쪽에서
+ * 같은 규칙을 쓴다. 두 경로가 다른 규칙을 쓰면 같은 컬럼(GameRecord.completedAt)에
+ * 신뢰 수준이 다른 값이 섞인다.
+ *
+ * ponytail: 서버는 실제 클리어 시각을 알 수 없다. 이건 "말이 되는 범위"만 거르는
+ * sanity check이지 위조 방지가 아니다. 랭킹 타이브레이커가 `completedAt asc`
+ * (= 이른 쪽이 유리)라 조작 이득 방향은 과거인데, 오프라인 큐가 오래 남을 수 있어
+ * 과거 상한을 좁힐 수 없다. 정밀한 방지가 필요하면 서버가 발급한 세션에
+ * 게임 시작 시각을 담아 대조하는 방식으로 올려야 한다.
+ */
+export const validateCompletedAt = (value: unknown): string | null => {
+  if (typeof value !== "string") {
+    return "클리어 일시가 문자열이 아닙니다";
+  }
+
+  const time = new Date(value).getTime();
+  if (Number.isNaN(time)) {
+    return "클리어 일시가 유효한 날짜가 아닙니다";
+  }
+
+  const now = Date.now();
+  if (time > now + MAX_COMPLETED_AT_FUTURE_SKEW_MS) {
+    return "클리어 일시가 미래입니다";
+  }
+  if (time < now - MAX_COMPLETED_AT_AGE_MS) {
+    return "클리어 일시가 너무 오래되었습니다";
+  }
+
+  return null;
+};
 
 /**
  * 개별 게스트 기록의 유효성을 검증
@@ -124,19 +160,10 @@ export const validateGuestRecord = (
     };
   }
 
-  // completedAt: 유효한 ISO 8601 날짜
-  if (typeof r.completedAt !== "string") {
-    return { isValid: false, reason: "클리어 일시가 문자열이 아닙니다" };
-  }
-
-  const date = new Date(r.completedAt);
-  if (isNaN(date.getTime())) {
-    return { isValid: false, reason: "클리어 일시가 유효한 날짜가 아닙니다" };
-  }
-
-  // 미래 날짜 방지 (1분 여유)
-  if (date.getTime() > Date.now() + 60_000) {
-    return { isValid: false, reason: "클리어 일시가 미래입니다" };
+  // completedAt: 유효한 ISO 8601 날짜 (clear 경로와 동일 규칙)
+  const completedAtError = validateCompletedAt(r.completedAt);
+  if (completedAtError) {
+    return { isValid: false, reason: completedAtError };
   }
 
   return { isValid: true };

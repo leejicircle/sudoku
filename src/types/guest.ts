@@ -129,3 +129,19 @@ export const MIN_STARS = 1;
 
 /** 최대 별점 */
 export const MAX_STARS = 3;
+
+/**
+ * 클리어 일시로 허용하는 최대 미래 오차 (5분)
+ *
+ * 클라이언트 시계는 NTP 동기화가 안 되면 수 분씩 어긋난다.
+ * 너무 빡빡하면 정상 기록이 반려된다.
+ */
+export const MAX_COMPLETED_AT_FUTURE_SKEW_MS = 5 * 60_000;
+
+/**
+ * 클리어 일시로 허용하는 최대 과거 (365일)
+ *
+ * 오프라인 큐(offline-clear-store)와 게스트 기록은 localStorage에 TTL 없이
+ * 남으므로 몇 달 뒤 전송될 수 있다. 상한은 "명백한 쓰레기 값"만 거르는 용도.
+ */
+export const MAX_COMPLETED_AT_AGE_MS = 365 * 24 * 60 * 60 * 1000;

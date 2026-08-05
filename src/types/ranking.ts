@@ -20,6 +20,13 @@ export interface GameClearRequest {
   hintsUsed: number;
   /** 별점 (1~3) */
   stars: number;
+  /**
+   * 실제 클리어 일시 (ISO 8601, 선택)
+   *
+   * 생략하면 서버 수신 시각을 쓴다. 오프라인 큐는 나중에 flush되므로
+   * 이 값을 보내야 랭킹 타이브레이커(completedAt asc)가 실제 순서와 맞는다.
+   */
+  completedAt?: string;
 }
 
 /** POST /api/game/clear 응답 데이터 */
