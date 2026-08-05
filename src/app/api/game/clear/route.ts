@@ -5,14 +5,15 @@
  *
  * - 인증 필수 (requireAuth)
  * - 요청 본문: { stage, clearTime, hintsUsed, stars }
- * - 유효성 검증 후 GameRecord 테이블에 저장
- * - 개인 최고 기록 여부를 함께 응답
+ * - (userId, stage)당 1행. 기존 기록보다 빠를 때만 갱신하고, 느리면 기존 최고 기록 유지
+ * - 이번 기록이 갱신에 성공했는지(isPersonalBest)를 함께 응답
  *
  * @see docs/adr/204-game-record-schema.md
  */
 
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/helpers";
+import { upsertBestRecords } from "@/lib/api/records";
 import { prisma } from "@/lib/prisma";
 import type { ApiResponse } from "@/types/api";
 import type { GameClearRequest, GameClearResponseData } from "@/types/ranking";
@@ -131,35 +132,36 @@ export const POST = async (req: Request) => {
   const userId = session.user.id;
 
   try {
-    // ── 4. 기록 저장 ──
-    const record = await prisma.gameRecord.create({
-      data: {
-        userId,
-        stage,
-        clearTime,
-        hintsUsed,
-        stars,
-        completedAt: new Date(),
-      },
-      select: { id: true },
-    });
+    // ── 4. 기록 저장 (기존보다 빠를 때만 갱신) ──
+    const [saved] = await upsertBestRecords(userId, [
+      { stage, clearTime, hintsUsed, stars, completedAt: new Date() },
+    ]);
 
-    // ── 5. 개인 최고 기록 확인 ──
-    const personalBest = await prisma.gameRecord.findFirst({
-      where: { userId, stage },
-      orderBy: { clearTime: "asc" },
-      select: { clearTime: true },
-    });
+    // ── 5. 응답 데이터 ──
+    // saved가 있으면 이번 기록이 기존을 갱신한 것 → 개인 최고 기록
+    let responseData: GameClearResponseData;
 
-    const personalBestTime = personalBest?.clearTime ?? clearTime;
-    const isPersonalBest = clearTime <= personalBestTime;
+    if (saved) {
+      responseData = {
+        recordId: saved.id,
+        isPersonalBest: true,
+        personalBestTime: clearTime,
+      };
+    } else {
+      // 기존 기록이 더 빠르거나 같아 유지됨
+      const existing = await prisma.gameRecord.findUnique({
+        where: { userId_stage: { userId, stage } },
+        select: { id: true, clearTime: true },
+      });
 
-    // ── 6. 응답 ──
-    const responseData: GameClearResponseData = {
-      recordId: record.id,
-      isPersonalBest,
-      personalBestTime,
-    };
+      if (!existing) throw new Error("갱신되지 않았는데 기존 기록이 없습니다");
+
+      responseData = {
+        recordId: existing.id,
+        isPersonalBest: false,
+        personalBestTime: existing.clearTime,
+      };
+    }
 
     return NextResponse.json<ApiResponse<GameClearResponseData>>(
       { success: true, data: responseData },

@@ -9,9 +9,8 @@
  * - 하나라도 성공하면 랭킹 캐시 무효화
  * - 동시 flush 방지 (ref 가드)
  *
- * ponytail: POST 성공 직후 앱이 죽으면 해당 건이 재전송되어 중복 행이 생길 수 있음
- * (창이 매우 좁음). /api/game/clear가 append-only라 발생 시 중복은 무해한 잉여 행.
- * 문제가 되면 서버에 (userId,stage,completedAt) 멱등 upsert 추가.
+ * POST 성공 직후 앱이 죽어 같은 건이 재전송돼도 안전하다. /api/game/clear가
+ * (userId, stage)당 1행을 더 빠를 때만 갱신하므로 재전송은 no-op이 된다.
  *
  * @see src/stores/offline-clear-store.ts
  */
