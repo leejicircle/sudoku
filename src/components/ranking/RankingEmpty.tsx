@@ -12,16 +12,18 @@ import { Trophy } from "lucide-react";
 const RankingEmpty = () => {
   return (
     <div className="flex flex-col items-center gap-3 py-16">
-      <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-warning/20 via-sudoku-primary/10 to-transparent backdrop-blur-sm">
-        <Trophy className="size-8 text-warning" strokeWidth={1.75} />
-      </div>
+      <Trophy
+        className="size-8 text-muted-foreground"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
       <p className="mt-1 text-base font-semibold">아직 기록이 없습니다</p>
       <p className="text-sm text-muted-foreground">
         첫 번째 도전자가 되어보세요!
       </p>
       <Link
         href="/"
-        className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-sudoku-primary px-5 py-2 text-sm font-semibold text-sudoku-primary-foreground shadow-md transition-all hover:opacity-90 hover:shadow-lg"
+        className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-[var(--radius-sm)] border border-input px-5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
       >
         게임 시작하기
       </Link>

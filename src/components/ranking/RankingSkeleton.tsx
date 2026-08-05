@@ -12,7 +12,7 @@ const SkeletonBox = ({ className }: { className?: string }) => (
 
 /** 포디움 스켈레톤 */
 const PodiumSkeleton = () => (
-  <div className="mx-4 flex items-end justify-center gap-4 rounded-lg bg-card p-5" style={{ minHeight: 180 }}>
+  <div className="mx-4 flex items-end justify-center gap-4 rounded-[var(--radius-lg)] border border-border bg-card p-5" style={{ minHeight: 180 }}>
     {/* 2위 */}
     <div className="flex flex-1 flex-col items-center gap-2 pt-5">
       <SkeletonBox className="size-11 rounded-full" />

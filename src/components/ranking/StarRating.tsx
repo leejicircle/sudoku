@@ -27,7 +27,7 @@ const StarRating = ({ stars, max = 3, size = 14 }: StarRatingProps) => {
           className={
             i < stars
               ? "fill-warning text-warning"
-              : "fill-transparent text-muted"
+              : "fill-transparent text-muted-foreground"
           }
         />
       ))}

@@ -116,7 +116,7 @@ const StarRating = memo(({ stars, baseDelay }: StarRatingProps) => (
         className={
           i <= stars
             ? "text-warning fill-warning"
-            : "text-muted fill-muted"
+            : "text-muted-foreground fill-transparent"
         }
         style={{
           animation: `star-scale-in 200ms ease-out ${baseDelay + (i - 1) * 100}ms both`,
@@ -307,7 +307,7 @@ const ClearModal = () => {
           "max-[374px]:w-[calc(100vw_-_32px)] " +
           "min-[768px]:max-w-[420px] " +
           "max-h-[90vh] overflow-y-auto " +
-          "bg-card border border-border rounded-xl " +
+          "bg-card border border-border rounded-[var(--radius-lg)] " +
           "py-8 px-6 " +
           "flex flex-col items-center " +
           "max-[374px]:py-6 max-[374px]:px-4 " +
@@ -390,7 +390,7 @@ const ClearModal = () => {
           <div
             className={
               "w-full mb-6 flex items-center gap-3 " +
-              "bg-success/10 border border-success/30 " +
+              "border border-border bg-secondary " +
               "rounded-[var(--radius-md)] py-3 px-4"
             }
             style={{
@@ -420,7 +420,7 @@ const ClearModal = () => {
           <Button
             ref={primaryBtnRef}
             variant="default"
-            className="h-12 w-full gap-2 text-base bg-sudoku-primary hover:bg-sudoku-primary/90"
+            className="h-12 w-full gap-2 text-base bg-sudoku-primary hover:bg-sudoku-accent"
             onClick={handleNextStage}
           >
             <Play size={16} />

@@ -73,7 +73,7 @@ const AuthButton = () => {
   return (
     <Button
       render={<Link href="/login" />}
-      className="h-11 rounded-full px-4"
+      className="h-11 rounded-[var(--radius-sm)] px-4"
       aria-label="로그인"
     >
       로그인

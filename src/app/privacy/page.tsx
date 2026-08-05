@@ -18,7 +18,7 @@ const PrivacyPage = () => {
           시행일: {UPDATED_AT}
         </p>
 
-        <div className="mt-8 space-y-8 text-sm leading-relaxed text-foreground/90">
+        <div className="mt-8 space-y-8 text-sm leading-relaxed text-foreground">
           <p>
             Sudoku(이하 “서비스”)는 이용자의 개인정보를 소중히 다루며, 아래와
             같이 최소한의 정보만 수집·이용합니다. 본 서비스는 개인이 운영하는

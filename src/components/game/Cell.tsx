@@ -81,7 +81,9 @@ const Cell = memo(
 
     // ── 텍스트 색상 결정 ──
     const textClass = useMemo(() => {
-      if (cell.isError) return "text-cell-error-foreground";
+      // 밑줄 = 오류의 비색상 신호 (빨간펜 체크)
+      if (cell.isError)
+        return "text-cell-error-foreground underline decoration-2 underline-offset-4";
       if (isSelected) return "text-cell-selected-foreground";
       if (cell.isGiven) return "text-cell-given-foreground font-bold";
       return "text-cell-default-foreground";
@@ -131,7 +133,7 @@ const Cell = memo(
           <div className="flex flex-col items-center gap-0.5">
             <Lock
               className="size-5 text-cell-locked-foreground"
-              strokeWidth={2.5}
+              strokeWidth={1.75}
               aria-hidden="true"
             />
           </div>
@@ -183,8 +185,8 @@ const Cell = memo(
           "transition-[background-color,box-shadow] duration-(--duration-fast) ease-out",
           /* 커서 */
           cell.isLocked ? "cursor-not-allowed" : cell.isGiven ? "cursor-default" : "cursor-pointer",
-          /* 잠금 셀 */
-          cell.isLocked && "opacity-80",
+          /* 잠금 셀 — 빗금 패턴이 투명도를 대신한다 (색 없이 "막힌 칸" 전달) */
+          cell.isLocked && "cell-hatch",
         )}
       >
         {renderContent()}

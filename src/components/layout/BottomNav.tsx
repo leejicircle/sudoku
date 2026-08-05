@@ -30,20 +30,25 @@ const BottomNav = () => {
               key={href}
               href={href}
               className={
-                "flex flex-1 flex-col items-center justify-center gap-0.5 " +
+                "relative flex flex-1 flex-col items-center justify-center gap-0.5 " +
                 "h-16 min-h-[44px] " +
                 "transition-colors duration-100 active:scale-95 " +
                 (isActive
-                  ? "text-sudoku-primary"
+                  ? "font-semibold text-foreground"
                   : "text-muted-foreground")
               }
               aria-label={ariaLabel}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="size-6" />
-              <span className="text-[11px] font-medium max-[374px]:hidden">
-                {label}
-              </span>
+              {/* 활성 표시 — 색이 아니라 상단 2px 잉크 바 */}
+              {isActive && (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-0.5 bg-foreground"
+                />
+              )}
+              <Icon className="size-6" strokeWidth={1.75} />
+              <span className="text-[11px] max-[374px]:hidden">{label}</span>
             </Link>
           );
         })}

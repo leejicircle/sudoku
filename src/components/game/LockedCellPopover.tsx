@@ -85,7 +85,7 @@ const LockedCellPopover = ({
             "bg-secondary px-4 py-2 " +
             "text-(length:--text-caption) font-medium text-secondary-foreground " +
             "transition-colors duration-(--duration-fast) " +
-            "hover:bg-secondary/80 " +
+            "hover:bg-secondary " +
             "cursor-pointer"
           }
         >

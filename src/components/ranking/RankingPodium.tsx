@@ -10,7 +10,7 @@
 "use client";
 
 import type { RankingEntry } from "@/types/ranking";
-import { formatTime, MEDAL_COLORS, MEDAL_EMOJI } from "./ranking-utils";
+import { formatTime, MEDAL_COLORS } from "./ranking-utils";
 import RankingAvatar from "./RankingAvatar";
 import StarRating from "./StarRating";
 
@@ -25,25 +25,27 @@ const PODIUM_ORDER = [1, 0, 2] as const;
 const PodiumItem = ({ entry, rank }: { entry: RankingEntry; rank: 1 | 2 | 3 }) => {
   const isFirst = rank === 1;
   const avatarSize = isFirst ? 56 : 44;
-  const medalColor = MEDAL_COLORS[rank];
-  const medal = MEDAL_EMOJI[rank];
 
   return (
     <div
       className="flex flex-1 flex-col items-center gap-1"
       style={{ paddingTop: isFirst ? 0 : 20 }}
     >
-      {/* 메달 */}
-      <span className="text-lg" aria-label={`${rank}위`}>
-        {medal}
+      {/* 순위 — 이모지 대신 모노 숫자 */}
+      <span
+        className="font-mono tabular-nums text-sm text-muted-foreground"
+        aria-label={`${rank}위`}
+      >
+        #{rank}
       </span>
 
-      {/* 아바타 */}
+      {/* 아바타 — 테두리는 잉크 명도 사다리, 1위만 2px */}
       <RankingAvatar
         image={entry.profileImage}
         name={entry.displayName}
         size={avatarSize}
-        borderColor={medalColor}
+        borderColor={MEDAL_COLORS[rank]}
+        borderWidth={isFirst ? 2 : 1}
       />
 
       {/* 닉네임 */}
@@ -58,7 +60,7 @@ const PodiumItem = ({ entry, rank }: { entry: RankingEntry; rank: 1 | 2 | 3 }) =
       </p>
 
       {/* 시간 + 별점 */}
-      <p className="font-mono text-xs text-muted-foreground">
+      <p className="font-mono tabular-nums text-xs text-muted-foreground">
         {formatTime(entry.clearTime)}
       </p>
       <StarRating stars={entry.stars} size={12} />
@@ -72,21 +74,15 @@ const RankingPodium = ({ rankings }: RankingPodiumProps) => {
 
   return (
     <div
-      className="relative mx-4 overflow-hidden rounded-2xl border border-border/60 bg-card/80 p-5 shadow-lg backdrop-blur-md"
+      className="mx-4 overflow-hidden rounded-[var(--radius-lg)] border border-border bg-card"
       style={{ minHeight: 180 }}
     >
-      {/* 상단 그라디언트 액센트 라인 */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sudoku-primary/60 to-transparent"
-      />
-      {/* 배경 글로우 */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-12 left-1/2 size-40 -translate-x-1/2 rounded-full bg-gradient-to-br from-warning/30 via-sudoku-primary/25 to-transparent blur-2xl"
-      />
+      {/* 표 머리 — 괘선 + 모노 캡션 */}
+      <p className="border-b border-border px-4 py-2 font-mono text-(length:--text-small) tracking-[0.2em] uppercase text-muted-foreground">
+        Top 3
+      </p>
 
-      <div className="relative flex items-end justify-center">
+      <div className="flex items-end justify-center p-5">
         {PODIUM_ORDER.map((index) => {
           const entry = top3[index];
           if (!entry) return <div key={index} className="flex-1" />;

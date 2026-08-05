@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { STAGE_RANGES } from "@/types/game";
 import { useGameStore } from "@/stores/game-store";
 import {
   DifficultyCard,
@@ -11,6 +11,9 @@ import {
 } from "@/components/home";
 import type { DifficultyItem } from "@/components/home";
 import { BrandWordmark } from "@/components/layout";
+
+/** 간행 캡션에 표시할 총 스테이지 수 */
+const TOTAL_STAGES = STAGE_RANGES[STAGE_RANGES.length - 1].endStage;
 
 const HomeContent = () => {
   const router = useRouter();
@@ -29,16 +32,13 @@ const HomeContent = () => {
       <div className="relative flex flex-1 flex-col px-4 py-8 md:px-6 md:py-12">
         {/* ── 히어로 ── */}
         <header className="mx-auto mb-10 w-full max-w-[760px] text-center md:mb-14">
-          {/* Eyebrow */}
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-sudoku-primary/25 bg-sudoku-primary/10 px-3 py-1 backdrop-blur-sm">
-            <Sparkles className="size-3.5 text-sudoku-primary" />
-            <span className="text-(length:--text-small) font-medium tracking-wide text-sudoku-primary">
-              매일 새로운 퍼즐
-            </span>
-          </div>
+          {/* 간행 정보 줄 — pill·아이콘·배경 없이 대문자 모노 + 넓은 자간만 */}
+          <p className="mb-4 font-mono text-(length:--text-small) tracking-[0.2em] uppercase text-muted-foreground">
+            Daily Puzzle · {TOTAL_STAGES} Stages
+          </p>
 
-          {/* 메인 타이틀 */}
-          <h1>
+          {/* 메인 타이틀 — 아래 1px 괘선이 표제 밑줄 역할 */}
+          <h1 className="mx-auto max-w-[420px] border-b border-border pb-4">
             <BrandWordmark size="lg" />
           </h1>
         </header>

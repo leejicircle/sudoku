@@ -1,8 +1,13 @@
 /**
- * 브랜드 워드마크 — `S · U · D · O · K · U` 시머 그라디언트 타이틀
+ * 브랜드 워드마크 — `SUDOKU` 단색 잉크 타이틀
  *
- * 홈/로그인 등 여러 곳에서 동일한 모노 + 트래킹 + 시머 조합을 쓰므로
+ * 홈/로그인 등 여러 곳에서 동일한 자간 조합을 쓰므로
  * 단일 컴포넌트로 추출하여 톤 일관성을 보장한다.
+ *
+ * 페이퍼 톤(v2): 그라데이션·시머 없음. 넓은 자간의 단색 활자만으로
+ * 인쇄물 표제를 표현한다.
+ *
+ * @see docs/design/design-system.md §14.2
  */
 
 import { cn } from "@/lib/utils";
@@ -14,20 +19,21 @@ interface BrandWordmarkProps {
 }
 
 const SIZE_CLASSES: Record<NonNullable<BrandWordmarkProps["size"]>, string> = {
-  sm: "text-lg tracking-[0.18em]",
-  md: "text-xl tracking-[0.18em]",
-  lg: "text-[clamp(1.4rem,5vw,2.75rem)] tracking-[0.1em]",
+  sm: "text-lg",
+  md: "text-xl",
+  lg: "text-[clamp(1.75rem,7vw,3rem)]",
 };
 
 const BrandWordmark = ({ size = "md", className }: BrandWordmarkProps) => (
   <span
     className={cn(
-      "animate-text-shimmer font-mono font-black whitespace-nowrap",
+      "font-[family-name:var(--font-geist-sans)] font-normal",
+      "tracking-[0.14em] whitespace-nowrap text-foreground",
       SIZE_CLASSES[size],
       className,
     )}
   >
-    S · U · D · O · K · U
+    SUDOKU
   </span>
 );
 

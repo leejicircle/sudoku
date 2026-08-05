@@ -944,28 +944,39 @@ export const MEDAL_COLORS = {
 ## 16. 구현 체크리스트 (Frontend 인계용)
 
 ```
-[ ] globals.css :root 값 교체              → §13.1
-[ ] globals.css .dark 값 교체              → §13.2
-[ ] globals.css .paper-bg 추가             → §14.1
-[ ] globals.css .cell-hatch 추가           → §12.1
-[ ] globals.css 삭제: .home-mesh-bg, .sudoku-grid-bg, .gradient-*,
+[x] globals.css :root 값 교체              → §13.1
+[x] globals.css .dark 값 교체              → §13.2
+[x] globals.css .paper-bg 추가             → §14.1
+[x] globals.css .cell-hatch 추가           → §12.1
+[x] globals.css 삭제: .home-mesh-bg, .sudoku-grid-bg, .gradient-*,
     .card-glow-*, .text-gradient-brand, .animate-text-shimmer,
     .animate-float-slow, @keyframes shimmer, @keyframes float-slow,
     @media(forced-colors) 폴백           → §14.1, §14.2, §14.3
-[ ] AppLayout.tsx 배경 레이어 1개로       → §14.1
-[ ] Header.tsx backdrop-blur 제거          → §14.1
-[ ] BrandWordmark.tsx 단색 + 세리프        → §14.2
-[ ] AppLogo.tsx 그라데이션 점 삭제         → §14.2
-[ ] HomeContent.tsx 스파클 뱃지 → 간행 캡션 → §14.2
-[ ] difficulty-data.ts level/toneClass     → §14.3
-[ ] DifficultyCard.tsx pip 게이지 + 괘선   → §14.3
-[ ] Cell.tsx 오류 밑줄 + 빗금 (2줄)        → §12.1
-[ ] NumberPad.tsx 버튼 보더 1px 추가       → §15.3
-[ ] RankingPodium.tsx 글로우 2겹 삭제      → §14.4
-[ ] ranking-utils.ts MEDAL_* 교체          → §14.4
-[ ] DifficultyTabs/RankingList 잉크 밑줄   → §14.4
-[ ] LoginBanner/ContinueBanner 평면화      → §14.5
-[ ] layout.tsx themeColor "#15120f"        → §13.3
-[ ] layout.tsx Instrument Serif (선택)     → §3.1
-[ ] Lighthouse 재측정: A11y ≥93, Perf ≥97
+[x] AppLayout.tsx 배경 레이어 1개로       → §14.1
+[x] Header.tsx backdrop-blur 제거          → §14.1
+[x] BrandWordmark.tsx 단색 (세리프 미채택 → §16.1)  → §14.2
+[x] AppLogo.tsx 그라데이션 점 삭제         → §14.2
+[x] HomeContent.tsx 스파클 뱃지 → 간행 캡션 → §14.2
+[x] difficulty-data.ts level/toneClass     → §14.3
+[x] DifficultyCard.tsx pip 게이지 + 괘선   → §14.3
+[x] Cell.tsx 오류 밑줄 + 빗금 (2줄)        → §12.1
+[x] NumberPad.tsx 버튼 보더 1px 추가       → §15.3
+[x] RankingPodium.tsx 글로우 2겹 삭제      → §14.4
+[x] ranking-utils.ts MEDAL_* 교체          → §14.4
+[x] DifficultyTabs/RankingList 잉크 밑줄   → §14.4
+[x] LoginBanner/ContinueBanner 평면화      → §14.5
+[x] layout.tsx themeColor "#15120f"        → §13.3
+[ ] layout.tsx Instrument Serif            → **미채택** (§16.1)
+[ ] Lighthouse 재측정: A11y ≥93, Perf ≥97  → 배포 후 측정 (Infra)
 ```
+
+### 16.1 구현 시 스펙과 다르게 처리한 3건
+
+| 항목 | 스펙 | 구현 | 이유 |
+|------|------|------|------|
+| **Instrument Serif** | 선택적·권장 | **미채택.** 워드마크는 Geist Sans + `tracking-[0.14em]` + `font-normal` | 앱이 이미 Geist Sans · Geist Mono · Noto Sans KR 3종을 싣고 있다. 라틴 6글자 2곳을 위해 4번째 패밀리를 더하는 건 PWA 페이로드 대비 이득이 낮다. §3.1이 명시한 대체안을 그대로 적용했다. |
+| **간행 캡션 문구** | `DAILY PUZZLE · NO.{stageNo}` | `DAILY PUZZLE · 50 STAGES` (`STAGE_RANGES` 마지막 `endStage`에서 산출) | 홈 히어로는 특정 스테이지에 묶이지 않아 `stageNo`가 존재하지 않는다. 진행 중 스테이지는 이미 바로 아래 `ContinueBanner`가 표시한다. |
+| **`--shadow-xs/sm/md/lg` 토큰** | §6 표에 정의 | `:root`에 넣지 않음. `--shadow-board` · `--shadow-cell-selected` · `--shadow-numpad` · `--shadow-xl` 4종만 유지 | Tailwind v4의 `shadow-*` 유틸리티는 빌드 타임에 값을 인라인하므로 `:root` 재정의를 읽지 않는다. 실제로 `var()`로 참조되는 4개만 살렸다. |
+
+> 워드마크에는 `font-sans`가 아니라 `font-[family-name:var(--font-geist-sans)]`를 쓴다.
+> `@theme inline`의 `--font-sans`가 자기 참조라 비어 있어 `font-sans`는 Noto Sans KR로 떨어진다.

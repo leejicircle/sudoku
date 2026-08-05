@@ -4,14 +4,10 @@ import Link from "next/link";
 const AppLogo = () => (
   <Link
     href="/"
-    className="group flex h-11 items-center gap-1.5 font-mono text-base font-black tracking-[0.2em] text-foreground"
+    className="flex h-11 items-center font-[family-name:var(--font-geist-sans)] text-base font-normal tracking-[0.14em] text-foreground"
     aria-label="스도쿠 홈"
   >
-    <span>SUDOKU</span>
-    <span
-      aria-hidden="true"
-      className="size-1.5 rounded-full bg-gradient-to-br from-sudoku-primary via-difficulty-hard to-difficulty-expert transition-transform duration-(--duration-normal) group-hover:scale-150"
-    />
+    SUDOKU
   </Link>
 );
 

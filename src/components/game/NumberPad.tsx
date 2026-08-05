@@ -157,7 +157,7 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
           "flex items-center justify-center " +
           "w-[var(--numpad-button-size)] h-[var(--numpad-button-size)] " +
           "rounded-[var(--radius-md)] " +
-          "cursor-pointer bg-card shadow-[var(--shadow-numpad)] " +
+          "cursor-pointer border border-border bg-card shadow-[var(--shadow-numpad)] " +
           "text-muted-foreground " +
           "transition-colors duration-[var(--duration-fast)] " +
           "hover:bg-accent " +
@@ -165,7 +165,7 @@ const NumberPad = ({ className = "" }: NumberPadProps) => {
           "disabled:opacity-40 disabled:pointer-events-none"
         }
       >
-        <Delete size={20} strokeWidth={2} />
+        <Delete size={20} strokeWidth={1.75} />
       </button>
     </div>
   );
@@ -206,8 +206,8 @@ const DigitButton = memo(({ digit, isComplete, disabled, onPress }: DigitButtonP
         "font-mono text-(length:--text-numpad) font-medium " +
         "transition-colors duration-[var(--duration-fast)] " +
         (isComplete
-          ? "opacity-30 bg-muted text-muted-foreground pointer-events-none "
-          : "cursor-pointer bg-card text-foreground shadow-[var(--shadow-numpad)] " +
+          ? "opacity-35 border border-border bg-muted text-muted-foreground pointer-events-none "
+          : "cursor-pointer border border-border bg-card text-foreground shadow-[var(--shadow-numpad)] " +
             "hover:bg-accent " +
             "active:animate-numpad-press active:bg-sudoku-primary active:text-sudoku-primary-foreground " +
             "disabled:opacity-40 disabled:pointer-events-none ")

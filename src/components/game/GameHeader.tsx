@@ -99,9 +99,9 @@ const GameHeader = ({ children }: GameHeaderProps) => {
       }
     >
       {isPaused ? (
-        <Play size={20} strokeWidth={2} />
+        <Play size={20} strokeWidth={1.75} />
       ) : (
-        <Pause size={20} strokeWidth={2} />
+        <Pause size={20} strokeWidth={1.75} />
       )}
     </button>
   ) : undefined;

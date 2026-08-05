@@ -21,10 +21,7 @@ interface DifficultyTabsProps {
 
 const DifficultyTabs = ({ activeId, onChange }: DifficultyTabsProps) => {
   return (
-    <div
-      className="mx-4 flex gap-1.5 rounded-full border border-border/60 bg-card/70 p-1.5 backdrop-blur-md"
-      role="tablist"
-    >
+    <div className="mx-4 flex border-b border-border" role="tablist">
       {DIFFICULTY_TABS.map((tab) => {
         const isActive = tab.id === activeId;
 
@@ -35,22 +32,20 @@ const DifficultyTabs = ({ activeId, onChange }: DifficultyTabsProps) => {
             aria-selected={isActive}
             onClick={() => onChange(tab)}
             className={cn(
-              "relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full py-2 text-sm font-semibold transition-all duration-(--duration-normal)",
+              "relative flex min-h-[44px] flex-1 cursor-pointer items-center justify-center py-2 text-sm transition-colors duration-(--duration-normal)",
               isActive
-                ? "bg-sudoku-primary/12 text-sudoku-primary ring-1 ring-sudoku-primary/25 shadow-sm"
-                : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
+                ? "font-semibold text-foreground"
+                : "font-medium text-muted-foreground hover:text-foreground",
             )}
           >
-            {/* 활성 도트 인디케이터 */}
-            <span
-              className={cn(
-                "size-1.5 rounded-full transition-opacity",
-                tab.activeClass,
-                isActive ? "opacity-100" : "opacity-40",
-              )}
-              aria-hidden="true"
-            />
             {tab.label}
+            {/* 활성 인디케이터 — 난이도별 색이 아니라 하단 2px 잉크 밑줄 */}
+            {isActive && (
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 -bottom-px h-0.5 bg-foreground"
+              />
+            )}
           </button>
         );
       })}

@@ -62,19 +62,19 @@ const BannerSkeleton = () => (
     className={
       "flex w-full items-center justify-between " +
       "rounded-[var(--radius-lg)] " +
-      "border border-border/30 bg-muted/20 " +
+      "border border-border bg-muted " +
       "p-4 mb-4 animate-pulse"
     }
     aria-hidden="true"
   >
     <div className="flex items-center gap-3">
-      <div className="size-5 rounded-sm bg-muted/40" />
+      <div className="size-5 rounded-sm bg-border" />
       <div className="flex flex-col gap-1.5">
-        <div className="h-3.5 w-32 rounded bg-muted/40" />
-        <div className="h-3 w-44 rounded bg-muted/40" />
+        <div className="h-3.5 w-32 rounded bg-border" />
+        <div className="h-3 w-44 rounded bg-border" />
       </div>
     </div>
-    <div className="h-4 w-16 rounded bg-muted/40" />
+    <div className="h-4 w-16 rounded bg-border" />
   </div>
 );
 
@@ -141,17 +141,20 @@ const ContinueBanner = () => {
       aria-label={`진행 중인 게임 이어하기 — ${difficultyLabel}, ${formatTime(timer)} 경과, ${progress}% 완료`}
       className={
         "flex w-full items-center justify-between " +
-        "rounded-[var(--radius-lg)] " +
-        "border border-sudoku-primary/25 bg-sudoku-primary/12 " +
+        "rounded-[var(--radius-md)] " +
+        "border border-border border-l-[3px] border-l-sudoku-primary bg-card " +
         "p-4 mb-4 " +
         "transition-colors duration-(--duration-fast) " +
-        "hover:bg-sudoku-primary/15 " +
+        "hover:bg-accent " +
         "cursor-pointer"
       }
     >
       {/* 좌측: 아이콘 + 정보 */}
       <div className="flex items-center gap-3 min-w-0">
-        <ClipboardList className="size-5 shrink-0 text-sudoku-primary" />
+        <ClipboardList
+          className="size-5 shrink-0 text-muted-foreground"
+          strokeWidth={1.75}
+        />
         <div className="flex flex-col items-start gap-0.5 min-w-0">
           <span className="text-(length:--text-caption) font-medium text-foreground">
             진행 중인 게임이 있습니다
@@ -170,7 +173,7 @@ const ContinueBanner = () => {
         }
       >
         이어하기
-        <ChevronRight className="size-4" />
+        <ChevronRight className="size-4" strokeWidth={1.75} />
       </div>
     </button>
   );

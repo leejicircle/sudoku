@@ -41,7 +41,7 @@ const ToolButton = memo(
         (disabled
           ? "opacity-40 pointer-events-none text-muted-foreground "
           : active
-            ? "cursor-pointer bg-sudoku-primary/10 text-sudoku-primary "
+            ? "cursor-pointer bg-sudoku-primary text-sudoku-primary-foreground font-semibold "
             : "cursor-pointer text-muted-foreground hover:bg-accent ")
       }
     >
@@ -143,26 +143,26 @@ const Toolbar = ({ className = "" }: ToolbarProps) => {
       aria-label="게임 도구"
     >
       <ToolButton
-        icon={<Undo2 size={20} />}
+        icon={<Undo2 size={20} strokeWidth={1.75} />}
         label="되돌리기"
         disabled={!canUndo}
         onClick={handleUndo}
       />
       <ToolButton
-        icon={<Eraser size={20} />}
+        icon={<Eraser size={20} strokeWidth={1.75} />}
         label="지우기"
         disabled={!canErase}
         onClick={handleErase}
       />
       <ToolButton
-        icon={<PenLine size={20} />}
+        icon={<PenLine size={20} strokeWidth={1.75} />}
         label="메모"
         active={isNoteMode}
         disabled={isComplete || isPaused}
         onClick={handleToggleMemo}
       />
       <ToolButton
-        icon={<Lightbulb size={20} />}
+        icon={<Lightbulb size={20} strokeWidth={1.75} />}
         label={`힌트(${hintsRemaining})`}
         disabled={!canHint}
         onClick={handleHint}
