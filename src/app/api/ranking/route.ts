@@ -22,6 +22,8 @@ import { MIN_STAGE, MAX_STAGE } from "@/types/guest";
 
 /** DISTINCT ON 쿼리가 돌려주는 원시 행 (game_records + users 조인) */
 interface RankingRow {
+  /** 정렬 타이브레이커 전용 — 응답에는 넣지 않는다 */
+  id: string;
   userId: string;
   clearTime: number;
   hintsUsed: number;
@@ -72,16 +74,18 @@ export const GET = async (req: NextRequest) => {
       prisma.$queryRaw<RankingRow[]>`
         SELECT b.* FROM (
           SELECT DISTINCT ON (r."userId")
-            r."userId", r."clearTime", r."hintsUsed", r."stars", r."completedAt",
+            r."id", r."userId", r."clearTime", r."hintsUsed", r."stars", r."completedAt",
             u."nickname", u."name", u."image"
           FROM "game_records" r
           JOIN "users" u ON u."id" = r."userId"
           WHERE r."stage" = ${stage}
-          -- 사용자별 최고 기록 판정: 빠른 순 → 동률이면 먼저 달성한 쪽
-          ORDER BY r."userId", r."clearTime" ASC, r."completedAt" ASC
+          -- 사용자별 최고 기록 판정: 빠른 순 → 동률이면 먼저 달성한 쪽 → 그래도 동률이면 id
+          -- id까지 봐야 (clearTime, completedAt)이 같은 행들 중 어느 쪽이 남을지 고정된다.
+          -- 기준은 20260806000000_record_unique_user_stage 마이그레이션의 보존 기준과 동일.
+          ORDER BY r."userId", r."clearTime" ASC, r."completedAt" ASC, r."id" ASC
         ) b
-        -- 랭킹 정렬: 같은 clearTime이면 먼저 달성한 사람이 상위
-        ORDER BY b."clearTime" ASC, b."completedAt" ASC
+        -- 랭킹 정렬: 같은 clearTime이면 먼저 달성한 사람이 상위, 그래도 동률이면 id
+        ORDER BY b."clearTime" ASC, b."completedAt" ASC, b."id" ASC
         LIMIT ${limit}
       `,
       prisma.$queryRaw<{ count: number }[]>`
