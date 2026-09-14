@@ -32,7 +32,8 @@
 
 - Node.js 20 이상
 - pnpm 10 이상
-- Supabase 프로젝트 (PostgreSQL)
+- Docker (로컬 개발 DB)
+- Supabase 프로젝트 (배포용 PostgreSQL)
 
 ### 설치
 
@@ -50,8 +51,8 @@ cp .env.example .env
 
 | 키                                     | 설명                                                                 |
 | -------------------------------------- | -------------------------------------------------------------------- |
-| `DATABASE_URL`                         | Supabase Transaction 풀러 URI (port 6543) — Prisma Client 런타임용   |
-| `DIRECT_URL`                           | Supabase Session URI (port 5432) — Prisma Migrate용                  |
+| `DATABASE_URL`                         | Prisma Client 런타임용 — 로컬은 docker Postgres, 배포는 Supabase Transaction 풀러 URI (port 6543) |
+| `DIRECT_URL`                           | Prisma Migrate용 — 로컬은 docker Postgres, 배포는 Supabase Session URI (port 5432) |
 | `AUTH_SECRET`                          | Auth.js 세션 암호화 키 (`npx auth secret`로 생성)                    |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`| Google Cloud Console OAuth 2.0 클라이언트 자격 증명                   |
 | `AUTH_NAVER_ID` / `AUTH_NAVER_SECRET`  | Naver Developers 애플리케이션 자격 증명                              |
@@ -62,10 +63,14 @@ cp .env.example .env
 ### DB 준비
 
 ```bash
-pnpm db:push      # 스키마를 DB에 반영 (개발 초기)
-# 또는
-pnpm db:migrate   # 마이그레이션 생성 + 적용
+docker compose up -d db   # 로컬 Postgres 17 기동
+pnpm db:migrate           # 마이그레이션 생성 + 로컬 DB에 적용
 ```
+
+#### 개발 DB 정책
+
+**개발은 로컬 docker Postgres에서만 한다. Supabase 클라우드 인스턴스는 배포·프리뷰 전용이다.**
+`pnpm db:migrate`(= `prisma migrate dev`)는 실행할 때마다 같은 인스턴스에 shadow DB를 만들었다 지우는데, 이것이 template DB 통째 복사 후 드롭이라 Supabase Free tier의 디스크 I/O 버짓을 한 번에 크게 소모한다. 여기에 에이전트 워크트리마다 `pnpm dev` · `db:studio` · `vitest`가 붙으면 실제 사용자 트래픽이 거의 없어도 쓰로틀링에 걸린다(실제로 발생했다 — [ADR-400](docs/adr/400-local-dev-database.md)). 따라서 `db:migrate` · `db:push` · `db:studio` · 테스트는 **로컬 DB에만** 실행하고, 클라우드 스키마 반영은 shadow DB를 만들지 않는 `pnpm db:deploy`(= `prisma migrate deploy`)로만 한다. 클라우드 접속 문자열은 로컬 `.env`가 아니라 Vercel 환경변수에 둔다.
 
 ### 개발 서버 실행
 
@@ -85,9 +90,10 @@ http://localhost:3000 에서 확인.
 | `pnpm lint`       | ESLint                            |
 | `pnpm type-check` | TypeScript 타입 검사              |
 | `pnpm test`       | Vitest 단위 테스트                |
-| `pnpm db:push`    | Prisma 스키마 DB 반영             |
-| `pnpm db:migrate` | Prisma 마이그레이션               |
-| `pnpm db:studio`  | Prisma Studio (DB GUI)            |
+| `pnpm db:push`    | Prisma 스키마 DB 반영 (로컬 전용) |
+| `pnpm db:migrate` | Prisma 마이그레이션 생성·적용 (로컬 전용) |
+| `pnpm db:deploy`  | 마이그레이션 적용 (클라우드용, shadow DB 없음) |
+| `pnpm db:studio`  | Prisma Studio (DB GUI, 로컬 전용) |
 
 ## 프로젝트 구조
 

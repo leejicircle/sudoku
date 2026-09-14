@@ -1,0 +1,16 @@
+# 로컬 개발용 Postgres. 개발 중 마이그레이션/테스트는 전부 여기에 붙는다.
+# 클라우드(Supabase) 인스턴스는 배포/프리뷰 전용 — 자세한 내용은 docs/adr/400-local-dev-database.md
+services:
+  db:
+    image: postgres:17
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: sudoku
+      POSTGRES_PASSWORD: sudoku
+      POSTGRES_DB: sudoku
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
