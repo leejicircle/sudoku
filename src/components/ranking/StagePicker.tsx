@@ -5,8 +5,10 @@
  * 스도쿠는 스테이지마다 퍼즐이 달라 같은 스테이지끼리만 기록을 겨룰 수 있으므로,
  * 구간을 묶지 않고 스테이지 단위로 랭킹을 조회한다.
  *
- * 한 줄 가로 스크롤 — 전문가 구간 20개도 세로 공간을 먹지 않고,
- * 데스크톱에서는 스크롤 없이 한 줄에 다 들어간다.
+ * 한 줄 가로 스크롤 — 전문가 구간 20개도 세로 공간을 먹지 않는다.
+ * 20개를 한 줄에 다 담으려면 1,026px(칩 44 + 간격 6 + 좌우 패딩 32)이 필요하고,
+ * 그보다 좁으면 스크롤해야 한다. 스와이프가 없는 마우스 환경에서는
+ * 스크롤바가 유일한 도달 수단이라 터치 환경에서만 숨긴다.
  */
 
 "use client";
@@ -27,7 +29,7 @@ const StagePicker = ({ stages, activeStage, onChange }: StagePickerProps) => {
     <div
       role="group"
       aria-label="스테이지 선택"
-      className="flex gap-1.5 overflow-x-auto px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="flex gap-1.5 overflow-x-auto px-4 py-3 pointer-coarse:[-ms-overflow-style:none] pointer-coarse:[scrollbar-width:none] pointer-coarse:[&::-webkit-scrollbar]:hidden"
     >
       {stages.map((stage) => {
         const isActive = stage === activeStage;
