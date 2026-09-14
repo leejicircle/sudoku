@@ -2,7 +2,10 @@
  * GET /api/ranking/me
  *
  * 로그인 사용자의 스테이지별 최고 기록을 조회한다.
- * (userId, stage)당 1행만 보관하므로 저장된 행이 곧 최고 기록이다.
+ *
+ * ⚠️ UNIQUE(userId, stage) 이전 데이터에는 한 스테이지에 여러 행이 남아 있다.
+ *    그대로 읽으면 같은 스테이지가 중복되고 clearedStages도 부풀려지므로
+ *    /api/ranking과 동일하게 DISTINCT ON으로 스테이지당 1건만 뽑는다.
  *
  * - 인증 필수 (requireAuth)
  *
@@ -29,18 +32,26 @@ export const GET = async () => {
 
   try {
     // ── 2. 스테이지별 최고 기록 조회 ──
-    // (userId, stage)당 1행이므로 그대로 읽으면 스테이지별 최고 기록이다.
-    const bestRecords = await prisma.gameRecord.findMany({
-      where: { userId },
-      orderBy: { stage: "asc" },
-      select: {
-        stage: true,
-        clearTime: true,
-        hintsUsed: true,
-        stars: true,
-        completedAt: true,
-      },
-    });
+    // DISTINCT ON (stage)으로 스테이지당 최고 기록 1건만 남긴다.
+    // 판정 기준은 랭킹과 동일: 빠른 순 → 동률이면 먼저 달성한 쪽 → 그래도 동률이면 id.
+    // id까지 봐야 (clearTime, completedAt)이 같은 행들 중 어느 쪽이 남을지 고정되어
+    // hintsUsed/stars가 요청마다 흔들리지 않는다.
+    // 기준은 20260806000000_record_unique_user_stage 마이그레이션의 보존 기준과 동일.
+    const bestRecords = await prisma.$queryRaw<
+      {
+        stage: number;
+        clearTime: number;
+        hintsUsed: number;
+        stars: number;
+        completedAt: Date;
+      }[]
+    >`
+      SELECT DISTINCT ON ("stage")
+        "stage", "clearTime", "hintsUsed", "stars", "completedAt", "id"
+      FROM "game_records"
+      WHERE "userId" = ${userId}
+      ORDER BY "stage" ASC, "clearTime" ASC, "completedAt" ASC, "id" ASC
+    `;
 
     const records: PersonalBestRecord[] = bestRecords.map((r) => ({
       stage: r.stage,
