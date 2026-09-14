@@ -97,6 +97,24 @@ model GameRecord {
   @@map("game_records")
 }
 
+/// (userId, stage)당 1행 전환 때 밀려난 과거 기록 보관소.
+/// 앱은 읽지 않는다 — 기록을 지우지 않기 위해서만 존재한다.
+/// User 관계를 걸지 않아 원본 계정이 지워져도 남는다.
+model GameRecordArchive {
+  id          String   @id
+  userId      String
+  stage       Int      @db.SmallInt
+  clearTime   Int
+  hintsUsed   Int      @db.SmallInt
+  stars       Int      @db.SmallInt
+  completedAt DateTime
+  createdAt   DateTime
+  updatedAt   DateTime
+  archivedAt  DateTime @default(now())
+
+  @@map("game_records_archive")
+}
+
 model VerificationToken {
   identifier String
   token      String
