@@ -7,19 +7,43 @@
 
 // ─── 난이도 탭 데이터 ─────────────────────────────────
 
+import { DIFFICULTIES } from "@/components/home/difficulty-data";
+import { MAX_STAGE } from "@/types/guest";
+
 export interface DifficultyTab {
   id: string;
   label: string;
-  /** 대표 스테이지 번호 (API 조회용) */
-  stage: number;
+  /** 구간 첫 스테이지 — 탭 전환 시 기본 선택 */
+  startStage: number;
+  /** 구간 마지막 스테이지 */
+  endStage: number;
 }
 
-export const DIFFICULTY_TABS: readonly DifficultyTab[] = [
-  { id: "easy", label: "쉬움", stage: 1 },
-  { id: "medium", label: "보통", stage: 11 },
-  { id: "hard", label: "어려움", stage: 21 },
-  { id: "expert", label: "전문가", stage: 31 },
-] as const;
+/**
+ * 난이도 탭 — 홈 화면 난이도 카드(DIFFICULTIES)에서 구간을 파생한다.
+ *
+ * 구간 목록을 여기 다시 적으면 홈과 어긋날 수 있으므로 startStage만 가져와
+ * 다음 카드의 시작 - 1을 끝으로 잡는다. (쉬움 1~10 · 보통 11~20 ·
+ * 어려움 21~30 · 전문가 31~50)
+ *
+ * types/game.ts의 STAGE_RANGES는 엔진용 5구간이라 사용자가 보는 4단계와
+ * 다르다 — 그쪽을 기준으로 삼지 않는다.
+ */
+export const DIFFICULTY_TABS: readonly DifficultyTab[] = DIFFICULTIES.map(
+  ({ id, label, startStage }, i) => ({
+    id,
+    label,
+    startStage,
+    endStage: (DIFFICULTIES[i + 1]?.startStage ?? MAX_STAGE + 1) - 1,
+  }),
+);
+
+/** 구간에 속한 스테이지 번호 목록 */
+export const stagesOf = (tab: DifficultyTab): number[] =>
+  Array.from(
+    { length: tab.endStage - tab.startStage + 1 },
+    (_, i) => tab.startStage + i,
+  );
 
 // ─── 시간 포맷 ────────────────────────────────────────
 
