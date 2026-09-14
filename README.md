@@ -14,6 +14,31 @@
 - **라이트 / 다크 테마** — 시스템 설정을 따르되 수동 전환 가능 (선택은 로컬에 유지)
 - **PWA / 오프라인** — 설치형 앱, 오프라인 플레이 후 온라인 복귀 시 기록 자동 동기화
 
+## 📸 화면
+
+### 🏠 홈
+
+진행 중인 게임이 있으면 이어하기 배너가 뜬다.
+
+<img src="docs/screenshots/sudoku-home-desktop.webp" width="100%" alt="홈 - 이어하기 배너와 난이도 선택" />
+
+### 🎮 게임
+
+<img src="docs/screenshots/sudoku-game-desktop.webp" width="100%" alt="게임 - 스도쿠 보드와 숫자 패드" />
+
+### 🔒 잠금 칸
+
+평범한 스도쿠에는 없는 규칙. 조건을 채워야 열리는 칸이다.
+
+<img src="docs/screenshots/sudoku-locked-desktop.webp" width="100%" alt="잠금 칸 - 해금 조건 안내 팝오버" />
+
+### 📱 모바일
+
+<p>
+  <img src="docs/screenshots/sudoku-home-mobile.webp" width="30%" alt="홈 (모바일)" />
+  <img src="docs/screenshots/sudoku-game-mobile.webp" width="30%" alt="게임 (모바일)" />
+</p>
+
 ## 기술 스택
 
 | 영역        | 사용 기술                                          |
